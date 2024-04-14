@@ -11,7 +11,7 @@ run_python_script() {
     PYTHON_PID=$!
 
     # Sleep for 2 minutes
-    sleep 250
+    sleep 300
 
     # Kill the Python script`
     kill $PYTHON_PID
