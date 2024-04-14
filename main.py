@@ -494,6 +494,12 @@ while True:
                         #     requests.post(f"https://api.callmebot.com/text.php?user=@JoelPP&text={urllib.parse.quote_plus(str(error))}")
                 # time.sleep(randint(30,60))
                 # browser.refresh()
+
+                else:
+                    print('Not a desired month for booking shutting down the bot')
+                    # SendNotification('No available slots')
+                    # time.sleep(randint(30,60))
+                    # browser.refresh()
                             
     
                 # exit code
