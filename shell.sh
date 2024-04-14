@@ -10,8 +10,8 @@ run_python_script() {
     # Save the process ID of the Python script
     PYTHON_PID=$!
 
-    # Sleep for 2 minutes
-    sleep 300
+    # Sleep for 7 minutes
+    sleep 420
 
     # Kill the Python script`
     kill $PYTHON_PID

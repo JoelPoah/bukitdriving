@@ -19,9 +19,9 @@ import sys ,os
 from selenium.webdriver.chrome.options import Options
 
 people_msg = [
-    # "https://api.callmebot.com/text.php?user=@JoelPP&text=",
+    "https://api.callmebot.com/text.php?user=@JoelPP&text=",
     # "https://api.callmebot.com/text.php?user=@Jessieraven&text=",
-    "https://api.telegram.org/bot6786500283:AAEI6WNk1ZGB7uLtugUbLR_iKYbxwoLM2EE/sendMessage?chat_id=-4188476384&text="
+    # "https://api.telegram.org/bot6786500283:AAEI6WNk1ZGB7uLtugUbLR_iKYbxwoLM2EE/sendMessage?chat_id=-4188476384&text="
 ]
 
 
@@ -38,10 +38,6 @@ stealth(browser,
         )
 
 def RetrieveKeyData(data):
-        # this is how data looks like 
-        print('raw data in retrieve key data', data)
-
-        print('before json.loads()')
         data = json.loads(data)
         slot_data = data['data']['releasedSlotListGroupByDay']
 
@@ -66,17 +62,19 @@ def RetrieveKeyData(data):
                     date = datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
 
                     # if is march , april , may or june , print the date
-                    if date.month in [2, 3, 4, 5, 6]:
+                    if date.month in [4]:
+                        # msg+="OMG BOOKING FOUND!\n"
+                        # print('Date: ',date ,"Start: ", start_time, "End: ", end_time, "Total Fee: ", total_fee)
+                        # msg += f"Date: {date} Start: {start_time} End: {end_time} Total Fee: {total_fee}\n"
+                        return True
 
-                        msg+="OMG BOOKING FOUND!\n"
-                        print('Date: ',date ,"Start: ", start_time, "End: ", end_time, "Total Fee: ", total_fee)
-                        msg += f"Date: {date} Start: {start_time} End: {end_time} Total Fee: {total_fee}\n"
 
-                SendNotification(str(msg))
-                
-            return None
+                # SendNotification(str(msg)) 
+                ''' 
+                For Auto Booking its not necessary to notify available slots but auto take the slot and book it
+                '''
         else:
-            return msg
+            return False
 
 
 
@@ -286,7 +284,6 @@ while True:
                     running4 = True
                 grey_screen = WebDriverWait(browser, wait_time).until(EC.invisibility_of_element_located((By.XPATH,"//div[@class='v-overlay__scrim']")))
                 WebDriverWait(browser, wait_time).until(EC.presence_of_element_located((By.XPATH, "//div[@class='v-calendar-weekly__day v-present' or @class='v-calendar-weekly__day v-future']//*")))
-                dates = browser.find_elements(By.XPATH, "//div[@class='v-calendar-weekly__day v-present' or @class='v-calendar-weekly__day v-future']")
 
                 # DateReleasedSpan = WebDriverWait(browser, wait_time).until(EC.presence_of_all_elements_located((By.XPATH, "//body//div[@id='app']//div[@class='v-main__wrap']//div[@class='chooseSlot']//div[@class='dateList dateList-web d-none d-md-flex']")))
 
@@ -301,27 +298,27 @@ while True:
                 WebDriverWait(browser, wait_time).until(EC.presence_of_element_located((By.XPATH, "//div[@class='v-calendar-weekly__day v-present' or @class='v-calendar-weekly__day v-future']//*")))
                 processed_available_slots = process_json_available_slots()
 
-                span2 = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//body//div[@id='app']//div[@class='v-main__wrap']//div[@class='chooseSlot']//div[@class='dateList dateList-web d-none d-md-flex']//button[2]")))
-                span2.click()
-                print(f'clicked the 2nd button')
-                grey_screen = WebDriverWait(browser, wait_time).until(EC.invisibility_of_element_located((By.XPATH,"//div[@class='v-overlay__scrim']")))
-                WebDriverWait(browser, wait_time).until(EC.presence_of_element_located((By.XPATH, "//div[@class='v-calendar-weekly__day v-present' or @class='v-calendar-weekly__day v-future']//*")))
-                processed_available_slots = process_json_available_slots()
+
+                    
+
+                '''
+                In theory you do not need to click the 2nd and 3rd button as we only want the closest slots now 
+                '''
+
+                # span2 = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//body//div[@id='app']//div[@class='v-main__wrap']//div[@class='chooseSlot']//div[@class='dateList dateList-web d-none d-md-flex']//button[2]")))
+                # span2.click()
+                # print(f'clicked the 2nd button')
+                # grey_screen = WebDriverWait(browser, wait_time).until(EC.invisibility_of_element_located((By.XPATH,"//div[@class='v-overlay__scrim']")))
+                # WebDriverWait(browser, wait_time).until(EC.presence_of_element_located((By.XPATH, "//div[@class='v-calendar-weekly__day v-present' or @class='v-calendar-weekly__day v-future']//*")))
+                # processed_available_slots = process_json_available_slots()
 
 
-                span3 = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//body//div[@id='app']//div[@class='v-main__wrap']//div[@class='chooseSlot']//div[@class='dateList dateList-web d-none d-md-flex']//button[3]")))
-                span3.click()
-                print(f'clicked the 3rd button')
-                grey_screen = WebDriverWait(browser, wait_time).until(EC.invisibility_of_element_located((By.XPATH,"//div[@class='v-overlay__scrim']")))
-                WebDriverWait(browser, wait_time).until(EC.presence_of_element_located((By.XPATH, "//div[@class='v-calendar-weekly__day v-present' or @class='v-calendar-weekly__day v-future']//*")))
-                processed_available_slots = process_json_available_slots()
-
-
-
-                # for index,span in enumerate(DateReleasedSpan):
-                #         span.find_element(By.XPATH, ".//button").click()
-                #         grey_screen = WebDriverWait(browser, wait_time).until(EC.invisibility_of_element_located((By.XPATH,"//div[@class='v-overlay__scrim']")))
-                #         WebDriverWait(browser, wait_time).until(EC.presence_of_element_located((By.XPATH, "//div[@class='v-calendar-weekly__day v-present' or @class='v-calendar-weekly__day v-future']//*")))
+                # span3 = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//body//div[@id='app']//div[@class='v-main__wrap']//div[@class='chooseSlot']//div[@class='dateList dateList-web d-none d-md-flex']//button[3]")))
+                # span3.click()
+                # print(f'clicked the 3rd button')
+                # grey_screen = WebDriverWait(browser, wait_time).until(EC.invisibility_of_element_located((By.XPATH,"//div[@class='v-overlay__scrim']")))
+                # WebDriverWait(browser, wait_time).until(EC.presence_of_element_located((By.XPATH, "//div[@class='v-calendar-weekly__day v-present' or @class='v-calendar-weekly__day v-future']//*")))
+                # processed_available_slots = process_json_available_slots()
 
 
                     
@@ -346,8 +343,88 @@ while True:
                 #                 print("No slot available")
                         
                 ''' 
-                I don't want the Bot to auto book the slot I just want notification
+                I want the Bot to auto book the slot with notification if processed_available_slots is true means it detected a month that we wanted therefore we activate the booking process
+
+                for trial purposes we can set the month to include september which is the earliest date for booking currently
                 '''
+
+                if processed_available_slots:
+
+                    print('inside the booking process')
+
+                    dates = browser.find_elements(By.XPATH, "//div[@class='v-calendar-weekly__day v-present' or @class='v-calendar-weekly__day v-future']")
+                    wanted_dates = [15,16,18,19,21,22,23,25,26,28,29,30] ## this is for april
+
+                    for each_date in dates:
+                        try:
+                            child_item = each_date
+                            parent_of_div = child_item.find_elements(By.TAG_NAME,"div")
+                            child_child_item = parent_of_div[0].find_elements(By.TAG_NAME,"span")
+
+                            if 'disabled-text' not in (child_child_item[0].get_attribute('class').split()) and int(child_item.text) in wanted_dates:
+                                print("Found slot")
+                                child_item.click() ## This becomes a function later to execute the booking process
+
+                                grey_screen = WebDriverWait(browser, wait_time).until(EC.invisibility_of_element_located((By.XPATH,"//div[@class='v-overlay__scrim']")))
+
+                                # chooseSlotsAvailable = WebDriverWait(browser, wait_time).until(EC.presence_of_element_located((By.CLASS_NAME,"col-mid col col-4")))
+                                # chooseSlots = browser.find_elements(By.CLASS_NAME,"col-mid col col-4")
+
+                                # will Xpath instead
+                                chooseSlotsAvailable = WebDriverWait(browser, wait_time).until(EC.presence_of_element_located((By.XPATH, "//div[@class='col-mid col col-4']")))
+                                chooseSlots = browser.find_elements(By.XPATH,"//div[@class='col-mid col col-4']")
+
+                                print('found chooseSlots !')
+
+                                chooseSlotsContentSession = chooseSlots[0].find_elements(By.XPATH,"//div[@class='sessionContent sessionContent-web d-none d-md-flex']")
+                                print('found chooseSlotsContentSession !')
+                                all_slots = browser.find_elements(By.XPATH,"//div[@class='col-mid col col-4']//div[@class='sessionContent sessionContent-web d-none d-md-flex']//div[@class='sessionCard']")
+
+                                print('all slots found !')
+                                print('dtype of all_slots', type(all_slots))
+
+                                print('length of all_slots', len(all_slots))
+
+                                try:
+                                    for i in all_slots:
+                                        i.click()
+                                        time.sleep(1)
+                                    print('clicked all slots')
+                                    
+                                except:
+                                    print('error in clicking all slots')
+                                    pass
+                            
+
+
+
+                                # delay 5 second
+                                time.sleep(5)
+
+                                # find the summary right and click the submit button
+                                submit_button = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//div[@class='col-right col col-4']//button[@type='button']")))
+                                submit_button.click()
+                                confirm = WebDriverWait(browser, 1000).until(EC.element_to_be_clickable((By.XPATH, "//div[@class='v-dialog v-dialog--active']//div[@class='v-card__actions justify-end']//span[normalize-space()='CONFIRM']")))
+                                confirm.click()
+                                captcha_code()
+                                # since we only want the first date's all slots we can break the loop
+                                # break removed because it screwed up the loop 
+
+                                msg = "These Slots have been booked!"
+                                for i in all_slots:
+                                    msg += i.text
+                                    msg += "\n"
+                                SendNotification(msg)
+
+
+
+                            else:
+                                continue
+                                # print("No slot available")
+                        except:
+                            pass
+
+
                             
                             # if 'disabled-text' not in (child_child_item[0].get_attribute('class').split()) and child_item.text in wanted_dates:
                             #     print("Found slot")
