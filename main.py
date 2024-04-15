@@ -20,8 +20,8 @@ from selenium.webdriver.chrome.options import Options
 
 people_msg = [
     "https://api.callmebot.com/text.php?user=@JoelPP&text=",
-    # "https://api.callmebot.com/text.php?user=@Jessieraven&text=",
-    # "https://api.telegram.org/bot6786500283:AAEI6WNk1ZGB7uLtugUbLR_iKYbxwoLM2EE/sendMessage?chat_id=-4188476384&text="
+    "https://api.callmebot.com/text.php?user=@Jessieraven&text=",
+    "https://api.telegram.org/bot6786500283:AAEI6WNk1ZGB7uLtugUbLR_iKYbxwoLM2EE/sendMessage?chat_id=-4188476384&text="
 ]
 
 
@@ -79,7 +79,7 @@ def RetrieveKeyData(data):
                     print('start time converted')
 
                     # if it is the desired month and also 2 hours before the slot
-                    if date.month in [4] and date_now<=(start_time_minus_2hours.time()):
+                    if date.month in [4] and date_now<=(start_time_minus_2hours.time()) and start_time.time() >= datetime.strptime('09:00','%H:%M').time() and start_time.time() <= datetime.strptime('11:50','%H:%M').time():
                         print('the index of the length of session that begins to be suitable is: ',index)
                         # msg+="OMG BOOKING FOUND!\n"
                         # print('Date: ',date ,"Start: ", start_time, "End: ", end_time, "Total Fee: ", total_fee)
@@ -188,8 +188,8 @@ running3 = True
 while True:
     try:
         while running3:
-            username="105F26022004"
-            password="020975"
+            username="337a18092001"
+            password="112220"
             WebDriverWait(browser, wait_time).until(EC.presence_of_element_located((By.XPATH, "/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/form[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/input[1]")))
             login_user = browser.find_element(By.XPATH,'/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/form[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/input[1]')
             login_user.send_keys(username)
@@ -342,7 +342,7 @@ while True:
                     print('inside the booking process')
 
                     dates = browser.find_elements(By.XPATH, "//div[@class='v-calendar-weekly__day v-present' or @class='v-calendar-weekly__day v-future']")
-                    wanted_dates = [16,18,19,21,22,23,25,26,28,29,30] ## this is for april
+                    wanted_dates = [17] ## this is for april jassebelle
 
                     for each_date in dates:
                         try:
@@ -379,6 +379,7 @@ while True:
                                         if index >= suitable_index :
                                             value.click()
                                             time.sleep(1)
+                                            break
                                     print('clicked all possible slots')
                                     
                                 except:
@@ -400,7 +401,7 @@ while True:
                                 # since we only want the first date's all slots we can break the loop
                                 # break removed because it screwed up the loop 
 
-                                msg = "These Slots have been booked!"
+                                msg = "These Slots have been booked for JassieRaven!"
                                 for i in all_slots:
                                     msg += i.text
                                     msg += "\n"
