@@ -81,9 +81,13 @@ def RetrieveKeyData(data):
                     # if it is the desired month and also 2 hours before the slot
                     if date.month in [4] and date_now<=(start_time_minus_2hours.time()):
                         print('the index of the length of session that begins to be suitable is: ',index)
-                        # msg+="OMG BOOKING FOUND!\n"
-                        # print('Date: ',date ,"Start: ", start_time, "End: ", end_time, "Total Fee: ", total_fee)
-                        # msg += f"Date: {date} Start: {start_time} End: {end_time} Total Fee: {total_fee}\n"
+                        try:
+                            msg+="OMG BOOKING FOUND but not booked yet!\n"
+                            print('Date: ',date ,"Start: ", start_time, "End: ", end_time, "Total Fee: ", total_fee)
+                            msg += f"Date: {date} Start: {start_time} End: {end_time} Total Fee: {total_fee}\n"
+                            SendNotification(str(msg))
+                        except:
+                            SendNotification('There was a possible booking found but error in sending & formatting')
                         return True,index
                     else:
                         continue
