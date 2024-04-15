@@ -10,7 +10,7 @@ from selenium_stealth import stealth
 from random import randint
 import requests
 import urllib.parse
-from datetime import datetime
+from datetime import datetime, timedelta
 import re
 from seleniumwire.utils import decode as sw_decode
 import jwt
@@ -41,9 +41,15 @@ def RetrieveKeyData(data):
         data = json.loads(data)
         slot_data = data['data']['releasedSlotListGroupByDay']
 
+        print('slot data retrieved')
+
+        date_now = datetime.now()
+        # for testing purposes hardcode the date_now to a specific datetime 
+        # date_now = datetime.strptime('16/09/2024 07:00','%d/%m/%Y %H:%M').time()
+        print('date now: ',date_now)
+
         if slot_data or slot_data != None or slot_data != [] or slot_data != {} or slot_data != "null" or slot_data != "undefined" or slot_data != "":
 
-            print(slot_data)
             print('success if dict type', type(slot_data))
 
             # take out all the keys ,values['startTime,'endTime']
@@ -52,21 +58,37 @@ def RetrieveKeyData(data):
 
             for key, value in slot_data.items():
                 # print(key, value)
-                for i in value:
-                    date = i['slotRefDate']
-                    start_time = i['startTime']
-                    end_time = i['endTime']
-                    total_fee = i['totalFee']
+                for index,slot_row in enumerate(value):
+                    date = slot_row['slotRefDate']
+                    start_time = slot_row['startTime']
+                    print('start time retrieved')
+
+                    start_time = str(start_time)
+                    # remove all spaces in the string
+                    start_time = start_time.replace(" ","") # may not be necessary
+                    print('start time converted to string')
+                    end_time = slot_row['endTime']
+                    total_fee = slot_row['totalFee']
+
 
                     # convert date to a proper date format
                     date = datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
+                    start_time = datetime.strptime(start_time,'%H:%M')
 
-                    # if is march , april , may or june , print the date
-                    if date.month in [4]:
+                    start_time_minus_2hours = start_time - timedelta(hours=2)
+                    print('start time converted')
+
+                    # if it is the desired month and also 2 hours before the slot
+                    if date.month in [4] and date_now<=(start_time_minus_2hours.time()):
+                        print('the index of the length of session that begins to be suitable is: ',index)
                         # msg+="OMG BOOKING FOUND!\n"
                         # print('Date: ',date ,"Start: ", start_time, "End: ", end_time, "Total Fee: ", total_fee)
                         # msg += f"Date: {date} Start: {start_time} End: {end_time} Total Fee: {total_fee}\n"
-                        return True
+                        return True,index
+                    else:
+                        continue
+
+                return False,0
 
 
                 # SendNotification(str(msg)) 
@@ -74,7 +96,7 @@ def RetrieveKeyData(data):
                 For Auto Booking its not necessary to notify available slots but auto take the slot and book it
                 '''
         else:
-            return False
+            return False,0
 
 
 
@@ -110,14 +132,15 @@ def process_json_available_slots():
                 data = sw_decode(request.response.body, request.response.headers.get('Content-Encoding', 'identity'))
                 data = data.decode("utf8")
                 print('if is str is working',type(data))
-                key_data = RetrieveKeyData(data)
+                Wanted_Month,IndexOfSlots = RetrieveKeyData(data)
 
-                return key_data
+                return Wanted_Month,IndexOfSlots
             else:
                 pass
     except:
+            print('error in process_json_available_slots() or RetrieveKeyData()')
             # SendNotification('ERROR process_json_available_slots()')
-            return
+            return False,0
             
 def filter_wanted_slots(slot_data):
     # take the keys of all the slot_data 
@@ -296,7 +319,7 @@ while True:
                 print(f'clicked the 1st button')
                 grey_screen = WebDriverWait(browser, wait_time).until(EC.invisibility_of_element_located((By.XPATH,"//div[@class='v-overlay__scrim']")))
                 WebDriverWait(browser, wait_time).until(EC.presence_of_element_located((By.XPATH, "//div[@class='v-calendar-weekly__day v-present' or @class='v-calendar-weekly__day v-future']//*")))
-                processed_available_slots = process_json_available_slots()
+                suitable_month,suitable_index = process_json_available_slots()
 
 
                     
@@ -304,43 +327,6 @@ while True:
                 '''
                 In theory you do not need to click the 2nd and 3rd button as we only want the closest slots now 
                 '''
-
-                # span2 = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//body//div[@id='app']//div[@class='v-main__wrap']//div[@class='chooseSlot']//div[@class='dateList dateList-web d-none d-md-flex']//button[2]")))
-                # span2.click()
-                # print(f'clicked the 2nd button')
-                # grey_screen = WebDriverWait(browser, wait_time).until(EC.invisibility_of_element_located((By.XPATH,"//div[@class='v-overlay__scrim']")))
-                # WebDriverWait(browser, wait_time).until(EC.presence_of_element_located((By.XPATH, "//div[@class='v-calendar-weekly__day v-present' or @class='v-calendar-weekly__day v-future']//*")))
-                # processed_available_slots = process_json_available_slots()
-
-
-                # span3 = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//body//div[@id='app']//div[@class='v-main__wrap']//div[@class='chooseSlot']//div[@class='dateList dateList-web d-none d-md-flex']//button[3]")))
-                # span3.click()
-                # print(f'clicked the 3rd button')
-                # grey_screen = WebDriverWait(browser, wait_time).until(EC.invisibility_of_element_located((By.XPATH,"//div[@class='v-overlay__scrim']")))
-                # WebDriverWait(browser, wait_time).until(EC.presence_of_element_located((By.XPATH, "//div[@class='v-calendar-weekly__day v-present' or @class='v-calendar-weekly__day v-future']//*")))
-                # processed_available_slots = process_json_available_slots()
-
-
-                    
-                # wanted_dates = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17.18,19,20,21,22,23,24,25,26,27,28,29,30,31]
-                # for each_date in dates:
-                #     if running:
-                #         if "/login" in browser.current_url:
-                #             running = False
-                #             running2 = False
-                #             running3 = True
-                #         try:
-                #             child_item = each_date
-                #             print(child_item.text)
-                #             parent_of_div = child_item.find_elements(By.TAG_NAME,"div")
-                #             child_child_item = parent_of_div[0].find_elements(By.TAG_NAME,"span")
-                #             print(child_child_item[0].get_attribute('class').split())
-
-                #             if 'disabled-text' not in (child_child_item[0].get_attribute('class').split()) and child_item.text in wanted_dates:
-                #                 SendNotification("Found Slot for this Month go book now!")
-                #                 print("Found slot")
-                #             else:
-                #                 print("No slot available")
                         
                 ''' 
                 I want the Bot to auto book the slot with notification if processed_available_slots is true means it detected a month that we wanted therefore we activate the booking process
@@ -348,7 +334,10 @@ while True:
                 for trial purposes we can set the month to include september which is the earliest date for booking currently
                 '''
 
-                if processed_available_slots:
+                print('suitable_month bool value: ', suitable_month)
+
+                if suitable_month == True:
+
 
                     print('inside the booking process')
 
@@ -361,7 +350,7 @@ while True:
                             parent_of_div = child_item.find_elements(By.TAG_NAME,"div")
                             child_child_item = parent_of_div[0].find_elements(By.TAG_NAME,"span")
 
-                            if 'disabled-text' not in (child_child_item[0].get_attribute('class').split()) and int(child_item.text) in wanted_dates:
+                            if 'disabled-text' not in (child_child_item[0].get_attribute('class').split()) and int(child_item.text) in wanted_dates :
                                 print("Found slot")
                                 child_item.click() ## This becomes a function later to execute the booking process
 
@@ -386,10 +375,11 @@ while True:
                                 print('length of all_slots', len(all_slots))
 
                                 try:
-                                    for i in all_slots:
-                                        i.click()
-                                        time.sleep(1)
-                                    print('clicked all slots')
+                                    for index,value in enumerate(all_slots):
+                                        if index >= suitable_index :
+                                            value.click()
+                                            time.sleep(1)
+                                    print('clicked all possible slots')
                                     
                                 except:
                                     print('error in clicking all slots')
@@ -415,85 +405,13 @@ while True:
                                     msg += i.text
                                     msg += "\n"
                                 SendNotification(msg)
-
-
-
                             else:
                                 continue
                                 # print("No slot available")
-                        except:
+                        except Exception as e:
+                            print('error in booking function: ',e)
                             pass
 
-
-                            
-                            # if 'disabled-text' not in (child_child_item[0].get_attribute('class').split()) and child_item.text in wanted_dates:
-                            #     print("Found slot")
-                            #     child_item.click()
-                            #     grey_screen = WebDriverWait(browser, wait_time).until(EC.invisibility_of_element_located((By.XPATH,"//div[@class='v-overlay__scrim']")))
-                            #     #change this
-                            #     sessionList = browser.find_elements(By.CLASS_NAME,"sessionList")
-                            #     slot = sessionList[1].find_element(By.CLASS_NAME,"sessionContent-web")
-                            #     all_slot = slot.find_elements(By.CLASS_NAME,"sessionCard")
-                            #     for each_slot in all_slot:
-                            #         # Get the current time
-                            #         now = datetime.datetime.now()
-
-                            #         # Convert the string containing "HH:MM" to a datetime object with the same date as the current time
-                            #         regex_check = re.search("\d{2}:\d{2}\ ",each_slot.text)
-                            #         time_str = (regex_check.group()).strip()
-                            #         time_obj = datetime.datetime.strptime(time_str, "%H:%M").replace(year=now.year, month=now.month, day=int(child_item.text))
-
-                            #         # Calculate the difference between the two datetime objects
-                            #         time_diff = time_obj - now
-
-                            #         # Extract the number of hours from the difference
-                            #         hours_diff = int(time_diff.total_seconds() / 3600)
-                            #         print(hours_diff)
-                            #         if hours_diff >= 1 and time_str != "07:30":
-                            #             each_slot.click()
-                                
-                            #     submit_button = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//div[@class='col-right col col-4']//button[@type='button']")))
-                            #     submit_button.click()
-                            #     confirm = WebDriverWait(browser, 1000).until(EC.element_to_be_clickable((By.XPATH, "//span[normalize-space()='CONFIRM']")))
-                            #     confirm.click()
-                            #     captcha_code()
-                            #     now = datetime.datetime.now()
-                            #     date_of_book_slot = each_date.text + "/" + str(now.month)
-                            #     class_booked = urllib.parse.quote_plus(date_of_book_slot + "\n" +all_slot[0].text)
-                            #     ignored_exceptions=(NoSuchElementException,StaleElementReferenceException,)
-                            #     fkingwork = True
-                            #     while fkingwork:
-                            #         if "/login" in browser.current_url:
-                            #             running = False
-                            #             running2 = False
-                            #             running3 = True
-                            #             fkingwork = False
-                            #         try:
-                            #             successornot=WebDriverWait(browser, 1000,ignored_exceptions=ignored_exceptions).until(EC.presence_of_element_located((By.XPATH,"//div[@class='item-bottom']//p[@class='text_success' or @class='text_fail']")))
-                            #             print(successornot.get_attribute("class"))
-                            #             print(successornot.text)
-                            #             if "text_success" in successornot.get_attribute("class"):
-                            #                 requests.post(f"https://api.callmebot.com/text.php?user=@JoelPP&text={class_booked}")
-                            #                 fkingwork = False
-
-                            #         except:
-                            #             pass
-                            #     new_booking = WebDriverWait(browser, 100).until(EC.presence_of_element_located((By.XPATH, "//span[normalize-space()='CLOSE']")))
-                            #     new_booking.click()
-                            #     running = False
-                            # else:
-                            #     nohave = "No slot available donkey"
-                            #     requests.post(f"https://api.callmebot.com/text.php?user=@JoelPP&text={nohave}")
-
-
-                        # except Exception as e:
-                        #     exc_type, exc_obj, exc_tb = sys.exc_info()
-                        #     fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-                        #     print(exc_type, fname, exc_tb.tb_lineno)
-                        #     error = str(exc_type) + "\n" + str(fname) + "\n" + str(exc_tb.tb_lineno) + "\n" + str(e)
-                        #     requests.post(f"https://api.callmebot.com/text.php?user=@JoelPP&text={urllib.parse.quote_plus(str(error))}")
-                # time.sleep(randint(30,60))
-                # browser.refresh()
 
                 else:
                     print('Not a desired month for booking shutting down the bot')
