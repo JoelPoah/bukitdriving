@@ -62,6 +62,7 @@ def RetrieveKeyData(data):
                     date = slot_row['slotRefDate']
                     start_time = slot_row['startTime']
                     userFixGrpNo = slot_row['userFixGrpNo']
+                    print('userFixGrpNo: ',userFixGrpNo)
                     start_time_str = start_time
                     print('start time retrieved')
 
@@ -363,7 +364,7 @@ while True:
                     print('inside the booking process')
 
                     dates = browser.find_elements(By.XPATH, "//div[@class='v-calendar-weekly__day v-present' or @class='v-calendar-weekly__day v-future']")
-                    wanted_dates = [16,18,19,21,22,23,25,26,28,29,30] ## this is for april
+                    wanted_dates = [16,17,18,19,21,22,23,25,26,28,29,30] ## this is for april
 
                     for each_date in dates:
                         try:
@@ -399,15 +400,11 @@ while True:
                                     for index,value in enumerate(all_slots):
                                         if index >= suitable_index :
                                             value.click()
-                                            time.sleep(1)
                                     print('clicked all possible slots')
                                     
                                 except:
                                     print('error in clicking all slots')
                                     pass
-                            
-
-
 
                                 # delay 3 second
                                 time.sleep(3)
@@ -417,9 +414,12 @@ while True:
                                 submit_button.click()
                                 confirm = WebDriverWait(browser, 1000).until(EC.element_to_be_clickable((By.XPATH, "//div[@class='v-dialog v-dialog--active']//div[@class='v-card__actions justify-end']//span[normalize-space()='CONFIRM']")))
                                 confirm.click()
+                                
                                 captcha_code()
                                 # since we only want the first date's all slots we can break the loop
                                 # break removed because it screwed up the loop 
+
+                                time.sleep(3)
 
                                 msg = "These Slots have been booked!"
                                 for i in all_slots:
