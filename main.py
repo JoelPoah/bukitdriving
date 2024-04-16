@@ -74,13 +74,12 @@ def RetrieveKeyData(data):
                     # convert date to a proper date format
                     date = datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
                     start_time = datetime.strptime(start_time,'%H:%M')
-
+                    start_time = start_time.replace(year=date.year, month=date.month, day=date.day,hour=start_time.hour,minute=start_time.minute)
                     start_time_minus_2hours = start_time - timedelta(hours=2)
                     print('start time converted')
 
-                    # if it is the desired month and also 2 hours before the slot
-                    if date.month in [4] and date_now<=(start_time_minus_2hours.time()) and start_time.time() >= datetime.strptime('09:00','%H:%M').time() and start_time.time() <= datetime.strptime('11:50','%H:%M').time():
-                        print('the index of the length of session that begins to be suitable is: ',index)
+                    if date.month in [4]:
+                        SendNotification('Found a slot in April initiating booking process. Checking if time is suitable for booking')
                         try:
                             msg+="OMG BOOKING FOUND but not booked yet!\n"
                             print('Date: ',date ,"Start: ", start_time, "End: ", end_time, "Total Fee: ", total_fee)
@@ -88,6 +87,10 @@ def RetrieveKeyData(data):
                             SendNotification(str(msg))
                         except:
                             SendNotification('There was a possible booking found but error in sending & formatting')
+                    # if it is the desired month and also 2 hours before the slot
+                    if date.month in [4] and date_now<=(start_time_minus_2hours) and start_time.time() >= datetime.strptime('09:00','%H:%M').time() and start_time.time() <= datetime.strptime('11:50','%H:%M').time():
+                        print('the index of the length of session that begins to be suitable is: ',index)
+                      
                         return True,index
                     else:
                         continue
