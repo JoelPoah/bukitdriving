@@ -62,6 +62,7 @@ def RetrieveKeyData(data):
                     date = slot_row['slotRefDate']
                     start_time = slot_row['startTime']
                     print('start time retrieved')
+                    userFixGrpNo = slot_row['userFixGrpNo']
 
                     end_time = slot_row['endTime']
                     total_fee = slot_row['totalFee']
@@ -79,7 +80,7 @@ def RetrieveKeyData(data):
                         try:
                             msg+="OMG BOOKING FOUND but not booked yet!\n"
                             print('Date: ',date ,"Start: ", start_time, "End: ", end_time, "Total Fee: ", total_fee)
-                            msg += f"Date: {date} Start: {start_time} End: {end_time} Total Fee: {total_fee}\n"
+                            msg += f"Date: {date} Start: {start_time} End: {end_time} Total Fee: {total_fee} UserFixGrpNo: {userFixGrpNo}\n"
                             SendNotification(str(msg))
                         except:
                             SendNotification('There was a possible booking found but error in sending & formatting')
