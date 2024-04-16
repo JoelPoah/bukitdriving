@@ -43,9 +43,9 @@ def RetrieveKeyData(data):
 
         print('slot data retrieved')
 
-        date_now = datetime.now()
+        # date_now = datetime.now()
         # for testing purposes hardcode the date_now to a specific datetime 
-        # date_now = datetime.strptime('16/09/2024 07:00','%d/%m/%Y %H:%M')
+        date_now = datetime.strptime('16/09/2024 08:00','%d/%m/%Y %H:%M')
         print('date now: ',date_now)
 
         if slot_data or slot_data != None or slot_data != [] or slot_data != {} or slot_data != "null" or slot_data != "undefined" or slot_data != "":
@@ -86,7 +86,7 @@ def RetrieveKeyData(data):
                     print('start time converted')
 
                     # added catch
-                    if date.month in [4]:
+                    if date.month in [9]:
                         SendNotification('Found a slot in September for Joel')
                         try:
                             msg+="OMG BOOKING FOUND but not booked yet please wait for confirmation booking!\n"
@@ -100,7 +100,7 @@ def RetrieveKeyData(data):
                     try:
 
                         # if it is the desired month and also 2 hours before the slot
-                        if date.month in [4] and date_now<=(start_time_minus_2hours):
+                        if date.month in [9] and date_now<=(start_time_minus_2hours):
                             print('the index of the length of session that begins to be suitable is: ',index)
                             SendNotification('Returning True and initializing the booking process')
 
