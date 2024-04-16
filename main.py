@@ -61,6 +61,7 @@ def RetrieveKeyData(data):
                 for index,slot_row in enumerate(value):
                     date = slot_row['slotRefDate']
                     start_time = slot_row['startTime']
+                    userFixGrpNo = slot_row['userFixGrpNo']
                     start_time_str = start_time
                     print('start time retrieved')
 
@@ -88,8 +89,8 @@ def RetrieveKeyData(data):
                         SendNotification('Found a slot in September for Joel')
                         try:
                             msg+="OMG BOOKING FOUND but not booked yet please wait for confirmation booking!\n"
-                            print('Date: ',date ,"Start: ", start_time_str, "End: ", end_time, "Total Fee: ", total_fee)
-                            msg += f"Date: {date} Start: {start_time_str} End: {end_time} Total Fee: {total_fee}\n"
+                            print('Date: ',date ,"Start: ", start_time_str, "End: ", end_time, "Total Fee: ", total_fee , "UserFixGrpNo: ", userFixGrpNo)
+                            msg += f"Date: {date} Start: {start_time_str} End: {end_time} Total Fee: {total_fee} UserFixGrpNo: {userFixGrpNo}\n"
                             SendNotification(str(msg))
                         except:
                             SendNotification('There was a possible booking found but error in sending & formatting')
@@ -408,8 +409,8 @@ while True:
 
 
 
-                                # delay 5 second
-                                time.sleep(5)
+                                # delay 3 second
+                                time.sleep(3)
 
                                 # find the summary right and click the submit button
                                 submit_button = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//div[@class='col-right col col-4']//button[@type='button']")))
