@@ -45,7 +45,7 @@ def RetrieveKeyData(data):
 
         date_now = datetime.now()
         # for testing purposes hardcode the date_now to a specific datetime 
-        # date_now = datetime.strptime('16/09/2024 07:00','%d/%m/%Y %H:%M').time()
+        # date_now = datetime.strptime('16/09/2024 07:00','%d/%m/%Y %H:%M')
         print('date now: ',date_now)
 
         if slot_data or slot_data != None or slot_data != [] or slot_data != {} or slot_data != "null" or slot_data != "undefined" or slot_data != "":
@@ -61,30 +61,35 @@ def RetrieveKeyData(data):
                 for index,slot_row in enumerate(value):
                     date = slot_row['slotRefDate']
                     start_time = slot_row['startTime']
+                    start_time_str = start_time
                     print('start time retrieved')
 
-                    start_time = str(start_time)
-                    # remove all spaces in the string
-                    start_time = start_time.replace(" ","") # may not be necessary
-                    print('start time converted to string')
+
                     end_time = slot_row['endTime']
                     total_fee = slot_row['totalFee']
 
 
                     # convert date to a proper date format
                     date = datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
-                    start_time = datetime.strptime(start_time,'%H:%M:%S')
+
+                    print('before start_time is stripped to datetime' , start_time)
+
+                    start_time = datetime.strptime(start_time,'%H:%M')
+
+                    print('after start_time is stripped to datetime' , start_time)
                     start_time = start_time.replace(year=date.year, month=date.month, day=date.day,hour=start_time.hour,minute=start_time.minute)
+
+                    print('after start_time is stripped to datetime with replacement' , start_time)
                     start_time_minus_2hours = start_time - timedelta(hours=2)
                     print('start time converted')
 
                     # added catch
                     if date.month in [4]:
-                        SendNotification('Found a slot in April for Joel')
+                        SendNotification('Found a slot in September for Joel')
                         try:
                             msg+="OMG BOOKING FOUND but not booked yet please wait for confirmation booking!\n"
-                            print('Date: ',date ,"Start: ", start_time, "End: ", end_time, "Total Fee: ", total_fee)
-                            msg += f"Date: {date} Start: {start_time} End: {end_time} Total Fee: {total_fee}\n"
+                            print('Date: ',date ,"Start: ", start_time_str, "End: ", end_time, "Total Fee: ", total_fee)
+                            msg += f"Date: {date} Start: {start_time_str} End: {end_time} Total Fee: {total_fee}\n"
                             SendNotification(str(msg))
                         except:
                             SendNotification('There was a possible booking found but error in sending & formatting')
