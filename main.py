@@ -63,10 +63,6 @@ def RetrieveKeyData(data):
                     start_time = slot_row['startTime']
                     print('start time retrieved')
 
-                    start_time = str(start_time)
-                    # remove all spaces in the string
-                    start_time = start_time.replace(" ","") # may not be necessary
-                    print('start time converted to string')
                     end_time = slot_row['endTime']
                     total_fee = slot_row['totalFee']
 
