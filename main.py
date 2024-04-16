@@ -382,6 +382,8 @@ while True:
 
                                 print('length of all_slots', len(all_slots))
 
+                                grey_screen = WebDriverWait(browser, wait_time).until(EC.invisibility_of_element_located((By.XPATH,"//div[@class='v-overlay__scrim']")))
+
                                 try:
                                     for index,value in enumerate(all_slots):
                                         if index >= suitable_index :
