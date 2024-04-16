@@ -19,7 +19,7 @@ import sys ,os
 from selenium.webdriver.chrome.options import Options
 
 people_msg = [
-    "https://api.callmebot.com/text.php?user=@JoelPP&text=",
+    # "https://api.callmebot.com/text.php?user=@JoelPP&text=",
     "https://api.callmebot.com/text.php?user=@Jessieraven&text=",
     "https://api.telegram.org/bot6786500283:AAEI6WNk1ZGB7uLtugUbLR_iKYbxwoLM2EE/sendMessage?chat_id=-4188476384&text="
 ]
@@ -45,7 +45,7 @@ def RetrieveKeyData(data):
 
         date_now = datetime.now()
         # for testing purposes hardcode the date_now to a specific datetime 
-        # date_now = datetime.strptime('16/09/2024 07:00','%d/%m/%Y %H:%M').time()
+        # date_now = datetime.strptime('16/09/2024 07:00','%d/%m/%Y %H:%M')
         print('date now: ',date_now)
 
         if slot_data or slot_data != None or slot_data != [] or slot_data != {} or slot_data != "null" or slot_data != "undefined" or slot_data != "":
@@ -73,7 +73,7 @@ def RetrieveKeyData(data):
 
                     # convert date to a proper date format
                     date = datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
-                    start_time = datetime.strptime(start_time,'%H:%M:%S')
+                    start_time = datetime.strptime(start_time,'%H:%M')
                     start_time = start_time.replace(year=date.year, month=date.month, day=date.day,hour=start_time.hour,minute=start_time.minute)
                     start_time_minus_2hours = start_time - timedelta(hours=2)
                     print('start time converted')
@@ -354,6 +354,7 @@ while True:
 
                     dates = browser.find_elements(By.XPATH, "//div[@class='v-calendar-weekly__day v-present' or @class='v-calendar-weekly__day v-future']")
                     wanted_dates = [17] ## this is for april jassebelle
+                    # wanted_dates = [2]
 
                     for each_date in dates:
                         try:
