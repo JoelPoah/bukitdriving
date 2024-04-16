@@ -73,7 +73,7 @@ def RetrieveKeyData(data):
 
                     # convert date to a proper date format
                     date = datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
-                    start_time = datetime.strptime(start_time,'%H:%M')
+                    start_time = datetime.strptime(start_time,'%H:%M:%S')
                     start_time = start_time.replace(year=date.year, month=date.month, day=date.day,hour=start_time.hour,minute=start_time.minute)
                     start_time_minus_2hours = start_time - timedelta(hours=2)
                     print('start time converted')
@@ -88,12 +88,16 @@ def RetrieveKeyData(data):
                         except:
                             SendNotification('There was a possible booking found but error in sending & formatting')
                     # if it is the desired month and also 2 hours before the slot
-                    if date.month in [4] and date_now<=(start_time_minus_2hours) and start_time.time() >= datetime.strptime('09:00','%H:%M').time() and start_time.time() <= datetime.strptime('11:50','%H:%M').time():
-                        print('the index of the length of session that begins to be suitable is: ',index)
-                      
-                        return True,index
-                    else:
-                        continue
+
+                    try:
+                        if date.month in [4] and date_now<=(start_time_minus_2hours) and start_time.time() >= datetime.strptime('09:00','%H:%M').time() and start_time.time() <= datetime.strptime('11:50','%H:%M').time():
+                            print('the index of the length of session that begins to be suitable is: ',index)
+                            SendNotification('Has passed time filter for booking returning true to start booking automatically')
+                            return True,index
+                        else:
+                            continue
+                    except:
+                        SendNotification('Did not pass time filter for booking ')
 
                 return False,0
 
