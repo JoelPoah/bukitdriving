@@ -20,14 +20,6 @@ run_python_script() {
 
     #!/bin/bash
 
-}
-
-# Run the Python script every 20 minutes
-while true; do
-    # Call the function to run the Python script
-    run_python_script
-
-
     # Get the process IDs (PIDs) of all Chrome instances
     chrome_pids=$(pgrep -i "Google Chrome")
 
@@ -41,6 +33,12 @@ while true; do
       echo "Chrome closed successfully."
     fi
 
+}
+
+# Run the Python script every 20 minutes
+while true; do
+    # Call the function to run the Python script
+    run_python_script
     # Sleep for 30sec before running again
     sleep 30
 done
