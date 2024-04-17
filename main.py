@@ -87,7 +87,7 @@ def RetrieveKeyData(data):
                     # if it is the desired month and also 2 hours before the slot
 
                     try:
-                        if date.month in [4] and date_now<=(start_time_minus_2hours) and start_time.time() >= datetime.strptime('09:00','%H:%M').time() and start_time.time() <= datetime.strptime('11:50','%H:%M').time():
+                        if date.month in [4] and date_now<=(start_time_minus_2hours) and start_time.time() >= datetime.strptime('09:00','%H:%M').time() and start_time.time() <= datetime.strptime('17:00','%H:%M').time():
                             print('the index of the length of session that begins to be suitable is: ',index)
                             SendNotification('Has passed time filter for booking returning true to start booking automatically')
                             return True,index
@@ -350,7 +350,7 @@ while True:
                     print('inside the booking process')
 
                     dates = browser.find_elements(By.XPATH, "//div[@class='v-calendar-weekly__day v-present' or @class='v-calendar-weekly__day v-future']")
-                    wanted_dates = [17] ## this is for april jassebelle
+                    wanted_dates = [22] ## this is for april jassebelle
                     # wanted_dates = [2]
 
                     for each_date in dates:
