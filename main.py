@@ -364,7 +364,7 @@ while True:
                     print('inside the booking process')
 
                     dates = browser.find_elements(By.XPATH, "//div[@class='v-calendar-weekly__day v-present' or @class='v-calendar-weekly__day v-future']")
-                    wanted_dates = [16,17,18,19,21,22,23,25,26,28,29,30] ## this is for april
+                    wanted_dates = [18,19,21,22,23,25,26,28,29,30] ## this is for april
 
                     for each_date in dates:
                         try:
