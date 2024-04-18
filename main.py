@@ -87,7 +87,7 @@ def RetrieveKeyData(data):
 
                     # added catch
                     if date.month in [4]:
-                        SendNotification('Found a slot in September for Joel')
+                        SendNotification('Found a slot for Joel')
                         try:
                             msg+="OMG BOOKING FOUND but not booked yet please wait for confirmation booking!\n"
                             print('Date: ',date ,"Start: ", start_time_str, "End: ", end_time, "Total Fee: ", total_fee , "UserFixGrpNo: ", userFixGrpNo)
