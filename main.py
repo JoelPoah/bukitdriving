@@ -442,6 +442,8 @@ while True:
                     # browser.refresh()
                 time.sleep(randint(10,60))
                 browser.refresh()
+                span1 = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//body//div[@id='app']//div[@class='v-main__wrap']//div[@class='chooseSlot']//div[@class='dateList dateList-web d-none d-md-flex']//button[1]")))
+                span1.click()
                 time.sleep(randint(10,15))
                 # exit code
                 # running = False
