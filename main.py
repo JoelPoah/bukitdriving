@@ -75,7 +75,7 @@ def RetrieveKeyData(data):
                     start_time_minus_2hours = start_time - timedelta(hours=2)
                     print('start time converted')
 
-                    if date.month in [4]:
+                    if date.month in [4] and userFixGrpNo=='G6007':
                         SendNotification('Found a slot in April initiating booking process. Checking if time is suitable for booking')
                         try:
                             msg+="OMG BOOKING FOUND but not booked yet!\n"
@@ -87,7 +87,7 @@ def RetrieveKeyData(data):
                     # if it is the desired month and also 2 hours before the slot
 
                     try:
-                        if date.month in [4] and date_now<=(start_time_minus_2hours) and start_time.time() >= datetime.strptime('09:00','%H:%M').time() and start_time.time() <= datetime.strptime('17:00','%H:%M').time():
+                        if date.month in [4] and userFixGrpNo=='G6007' and date_now<=(start_time_minus_2hours) and start_time.time() >= datetime.strptime('09:00','%H:%M').time() and start_time.time() <= datetime.strptime('17:00','%H:%M').time():
                             print('the index of the length of session that begins to be suitable is: ',index)
                             SendNotification('Has passed time filter for booking returning true to start booking automatically')
                             return True,index
