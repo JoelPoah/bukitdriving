@@ -86,7 +86,7 @@ def RetrieveKeyData(data):
                     print('start time converted')
 
                     # added catch
-                    if date.month in [4]:
+                    if date.month in [4] and userFixGrpNo=='G6067':
                         SendNotification('Found a slot for Joel')
                         try:
                             msg+="OMG BOOKING FOUND but not booked yet please wait for confirmation booking!\n"
@@ -100,7 +100,7 @@ def RetrieveKeyData(data):
                     try:
 
                         # if it is the desired month and also 2 hours before the slot
-                        if date.month in [4] and date_now<=(start_time_minus_2hours):
+                        if date.month in [4] and date_now<=(start_time_minus_2hours) and userFixGrpNo=='G6067':
                             print('the index of the length of session that begins to be suitable is: ',index)
                             SendNotification('Returning True and initializing the booking process')
 
