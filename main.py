@@ -430,13 +430,12 @@ while True:
                     # SendNotification('No available slots')
                     # time.sleep(randint(30,60))
                     # browser.refresh()
-                            
-    
+                time.sleep(randint(10,15))
+                browser.refresh()
                 # exit code
-                running = False
-                # time.sleep(randint(10,15))
-                browser.quit()
-                browser.close()
+                # running = False
+                # browser.quit()
+                # browser.close()
                 del browser
                 
                 '''
