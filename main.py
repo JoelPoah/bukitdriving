@@ -440,17 +440,16 @@ while True:
                     # SendNotification('No available slots')
                     # time.sleep(randint(30,60))
                     # browser.refresh()
-                            
-    
+                time.sleep(randint(10,15))
+                browser.refresh()
                 # exit code
-                running = False
-                # time.sleep(randint(10,15))
-                browser.quit()
-                browser.close()
-                del browser
+                # running = False
+                # browser.quit()
+                # browser.close()
+                # del browser
                 
                 '''
-                No more browser refresh the bash scripts will handle the refresh 
+                Browser refreshes and running continues
                 '''
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
