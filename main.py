@@ -76,7 +76,7 @@ def RetrieveKeyData(data):
                     print('start time converted')
 
                     if date.month in [4] and userFixGrpNo=='G6007':
-                        SendNotification('Found a slot in April initiating booking process. Checking if time is suitable for booking')
+                        SendNotification('Found a slot in April for Jas. Checking if time is suitable for her to book')
                         try:
                             msg+="OMG BOOKING FOUND but not booked yet!\n"
                             print('Date: ',date ,"Start: ", start_time, "End: ", end_time, "Total Fee: ", total_fee)
@@ -89,7 +89,7 @@ def RetrieveKeyData(data):
                     try:
                         if date.month in [4] and userFixGrpNo=='G6007' and date_now<=(start_time_minus_2hours) and start_time.time() >= datetime.strptime('09:00','%H:%M').time() and start_time.time() <= datetime.strptime('17:00','%H:%M').time():
                             print('the index of the length of session that begins to be suitable is: ',index)
-                            SendNotification('Has passed time filter for booking returning true to start booking automatically')
+                            SendNotification('Seems like the datetime is suitable returning true to start booking automatically')
                             return True,index
                         else:
                             continue
@@ -432,12 +432,14 @@ while True:
                     # browser.refresh()
                 time.sleep(randint(10,60))
                 browser.refresh()
+                span1 = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//body//div[@id='app']//div[@class='v-main__wrap']//div[@class='chooseSlot']//div[@class='dateList dateList-web d-none d-md-flex']//button[1]")))
+                span1.click()
                 time.sleep(randint(10,15))
                 # exit code
                 # running = False
                 # browser.quit()
                 # browser.close()
-                del browser
+                # del browser
                 
                 '''
                 No more browser refresh the bash scripts will handle the refresh 
