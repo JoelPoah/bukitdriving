@@ -258,7 +258,8 @@ while True:
                             print(exc_type, fname, exc_tb.tb_lineno)
                             error = str(exc_type) + "\n" + str(fname) + "\n" + str(exc_tb.tb_lineno) + "\n" + str(e)
                             requests.post(f"https://api.callmebot.com/text.php?user=@JoelPP&text={urllib.parse.quote_plus(str(error))}")
-                time.sleep(randint(30,60))
+                
+                time.sleep(randint(15,25))
                 browser.refresh()
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
