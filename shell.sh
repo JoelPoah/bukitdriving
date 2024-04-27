@@ -10,8 +10,8 @@ run_python_script() {
     # Save the process ID of the Python script
     PYTHON_PID=$!
 
-    # Sleep for 10 minutes( browser refreshes for 10 minutes straight before it gets killed)
-    sleep 600
+    # Sleep for 6 hours ( browser refreshes for 6 hours straight before it gets killed)
+    sleep 21600
 
     # Kill the Python script`
     kill $PYTHON_PID
@@ -40,5 +40,5 @@ while true; do
     # Call the function to run the Python script
     run_python_script
     # Sleep for 30sec before running again
-    sleep 30
+    sleep 20
 done

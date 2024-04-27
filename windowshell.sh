@@ -6,6 +6,6 @@ run_window_main(){
 
 while true; do
     run_window_main
-    sleep 600
+    sleep 21600
     kill $FUNNY_PID
 done
