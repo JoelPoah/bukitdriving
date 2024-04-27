@@ -5,7 +5,7 @@ run_python_script() {
     # Activate the virtual environment
     # C:/Users/Admin/Desktop/BBDC/venv/Scripts/activate
     # Run Python script in the background
-    python3 main.py &
+    python3 aggressivebot.py &
 
     # Save the process ID of the Python script
     PYTHON_PID=$!
