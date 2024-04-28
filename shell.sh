@@ -11,7 +11,7 @@ run_python_script() {
     PYTHON_PID=$!
 
     # Sleep for 6 hours ( browser refreshes for 6 hours straight before it gets killed)
-    sleep 21600
+    sleep 16200
 
     # Kill the Python script`
     kill $PYTHON_PID
