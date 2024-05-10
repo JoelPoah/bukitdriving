@@ -82,11 +82,11 @@ def RetrieveKeyData(data):
                     start_time = start_time.replace(year=date.year, month=date.month, day=date.day,hour=start_time.hour,minute=start_time.minute)
 
                     print('after start_time is stripped to datetime with replacement' , start_time)
-                    start_time_minus_2hours = start_time - timedelta(hours=2)
+                    # start_time_minus_2hours = start_time - timedelta(hours=2)
                     print('start time converted')
 
                     # added catch
-                    if date.month in [4] and userFixGrpNo=='G6067':
+                    if date.month in [5]:
                         SendNotification('Found a slot for Joel')
                         try:
                             msg+="OMG BOOKING FOUND but not booked yet please wait for confirmation booking!\n"
@@ -100,7 +100,11 @@ def RetrieveKeyData(data):
                     try:
 
                         # if it is the desired month and also 2 hours before the slot
-                        if date.month in [4] and date_now<=(start_time_minus_2hours) and userFixGrpNo=='G6067':
+                        # if date.month in [5] and date_now<=(start_time_minus_2hours):
+                        '''
+                        removed 2 hour wait time need instant response
+                        '''
+                        if date.month in [5] :
                             print('the index of the length of session that begins to be suitable is: ',index)
                             SendNotification('Returning True and initializing the booking process')
 
@@ -332,8 +336,8 @@ while True:
                 # DateReleasedSpan = WebDriverWait(browser, wait_time).until(EC.presence_of_all_elements_located((By.XPATH, "//body//div[@id='app']//div[@class='v-main__wrap']//div[@class='chooseSlot']//div[@class='dateList dateList-web d-none d-md-flex']")))
 
 
-                span1 = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//body//div[@id='app']//div[@class='v-main__wrap']//div[@class='chooseSlot']//div[@class='dateList dateList-web d-none d-md-flex']//button[1]")))
-                span1.click()
+                # span1 = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//body//div[@id='app']//div[@class='v-main__wrap']//div[@class='chooseSlot']//div[@class='dateList dateList-web d-none d-md-flex']//button[1]")))
+                # span1.click()
 
                 # Sends next few closest slots
                 # processed_available_slots = process_json_available_slots()
@@ -363,7 +367,7 @@ while True:
                     print('inside the booking process')
 
                     dates = browser.find_elements(By.XPATH, "//div[@class='v-calendar-weekly__day v-present' or @class='v-calendar-weekly__day v-future']")
-                    wanted_dates = [29] ## this is for april
+                    wanted_dates = [10,20,21,22,23,24,27,28,29,30,31]
 
                     for each_date in dates:
                         try:
@@ -394,7 +398,7 @@ while True:
                                 print('dtype of all_slots', type(all_slots))
 
                                 print('length of all_slots', len(all_slots))
-                                grey_screen = WebDriverWait(browser, wait_time).until(EC.invisibility_of_element_located((By.XPATH,"//div[@class='v-overlay__scrim']")))
+                                grey_screen = WebDriverWait(browser, 10).until(EC.invisibility_of_element_located((By.XPATH,"//div[@class='v-overlay__scrim']")))
 
                                 try:
                                     for index,value in enumerate(all_slots):
@@ -445,10 +449,10 @@ while True:
                     # SendNotification('No available slots')
                     # time.sleep(randint(30,60))
                     # browser.refresh()
-                time.sleep(randint(10,60))
+                time.sleep(randint(3,6))
                 browser.refresh()
-                span1 = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//body//div[@id='app']//div[@class='v-main__wrap']//div[@class='chooseSlot']//div[@class='dateList dateList-web d-none d-md-flex']//button[1]")))
-                span1.click()
+                # span1 = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//body//div[@id='app']//div[@class='v-main__wrap']//div[@class='chooseSlot']//div[@class='dateList dateList-web d-none d-md-flex']//button[1]")))
+                # span1.click()
                 time.sleep(randint(10,15))
                 # exit code
                 # running = False

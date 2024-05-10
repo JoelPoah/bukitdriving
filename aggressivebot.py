@@ -180,7 +180,7 @@ while True:
                 grey_screen = WebDriverWait(browser, wait_time).until(EC.invisibility_of_element_located((By.XPATH,"//div[@class='v-overlay__scrim']")))
                 WebDriverWait(browser, wait_time).until(EC.presence_of_element_located((By.XPATH, "//div[@class='v-calendar-weekly__day v-present' or @class='v-calendar-weekly__day v-future']//*")))
                 dates = browser.find_elements(By.XPATH, "//div[@class='v-calendar-weekly__day v-present' or @class='v-calendar-weekly__day v-future']")
-                wanted_dates = [29]
+                wanted_dates = [20,21,22,23,27,28,29,30]
                 for each_date in dates:
                     if running:
                         if "/login" in browser.current_url:

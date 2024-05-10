@@ -10,8 +10,8 @@ run_python_script() {
     # Save the process ID of the Python script
     PYTHON_PID=$!
 
-    # Sleep for 6 hours ( browser refreshes for 6 hours straight before it gets killed)
-    sleep 16200
+    # Sleep for 20 minutes ( browser refreshes for 6 hours straight before it gets killed)
+    sleep 1200
 
     # Kill the Python script`
     kill $PYTHON_PID
