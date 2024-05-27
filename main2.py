@@ -82,7 +82,7 @@ def RetrieveKeyData(data):
                     start_time = start_time.replace(year=date.year, month=date.month, day=date.day,hour=start_time.hour,minute=start_time.minute)
 
                     print('after start_time is stripped to datetime with replacement' , start_time)
-                    # start_time_minus_2hours = start_time - timedelta(hours=2)
+                    start_time_minus_2hours = start_time - timedelta(hours=2)
                     print('start time converted')
 
                     # added catch
@@ -100,15 +100,14 @@ def RetrieveKeyData(data):
                     try:
 
                         # if it is the desired month and also 2 hours before the slot
-                        # if date.month in [5] and date_now<=(start_time_minus_2hours):
-                        '''
-                        removed 2 hour wait time need instant response
-                        '''
-                        if date.month in [5] :
-                            print('the index of the length of session that begins to be suitable is: ',index)
-                            SendNotification('Returning True and initializing the booking process')
-
-                            return True,index
+                        #if date.month in [5] and date_now<=(start_time_minus_2hours):
+                        #   '''
+                        #  removed 2 hour wait time need instant response
+                        #  '''
+                        if date.month in [5]:
+                           print('the index of the length of session that begins to be suitable is: ',index)
+                           SendNotification('Returning True and initializing the booking process')
+                           return True,index
                         else:
                             continue
                     except:
@@ -367,7 +366,7 @@ while True:
                     print('inside the booking process')
 
                     dates = browser.find_elements(By.XPATH, "//div[@class='v-calendar-weekly__day v-present' or @class='v-calendar-weekly__day v-future']")
-                    wanted_dates = [10,20,21,22,23,24,27,28,29,30,31]
+                    wanted_dates = [28,29,30,31]
 
                     for each_date in dates:
                         try:
@@ -449,11 +448,10 @@ while True:
                     # SendNotification('No available slots')
                     # time.sleep(randint(30,60))
                     # browser.refresh()
-                time.sleep(randint(3,6))
+                time.sleep(randint(11,16))
                 browser.refresh()
                 # span1 = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//body//div[@id='app']//div[@class='v-main__wrap']//div[@class='chooseSlot']//div[@class='dateList dateList-web d-none d-md-flex']//button[1]")))
                 # span1.click()
-                time.sleep(randint(10,15))
                 # exit code
                 # running = False
                 # browser.quit()
