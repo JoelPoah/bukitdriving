@@ -86,19 +86,7 @@ def RetrieveKeyData(data):
                     print('start time converted')
 
                     # added catch
-                    if date.month in [5]:
-                        SendNotification('Found a slot for Joel')
-                        try:
-                            msg+="OMG BOOKING FOUND but not booked yet please wait for confirmation booking!\n"
-                            print('Date: ',date ,"Start: ", start_time_str, "End: ", end_time, "Total Fee: ", total_fee , "UserFixGrpNo: ", userFixGrpNo)
-                            msg += f"Date: {date} Start: {start_time_str} End: {end_time} Total Fee: {total_fee} UserFixGrpNo: {userFixGrpNo}\n"
-                            SendNotification(str(msg))
-                        except:
-                            SendNotification('There was a possible booking found but error in sending & formatting')
-
-
                     try:
-
                         # if it is the desired month and also 2 hours before the slot
                         #if date.month in [5] and date_now<=(start_time_minus_2hours):
                         #   '''
@@ -106,7 +94,8 @@ def RetrieveKeyData(data):
                         #  '''
                         if date.month in [5]:
                            print('the index of the length of session that begins to be suitable is: ',index)
-                           SendNotification('Returning True and initializing the booking process')
+                           msg = "Found slot proceed to book ! Date: " + str(date)+ "Start Time: " + str(start_time) + "End Time: " + str(end_time) + "." 
+                           SendNotification(msg)
                            return True,index
                         else:
                             continue
@@ -199,6 +188,7 @@ def captcha_code():
                     verify_button = browser.find_element(By.XPATH,"//span[text()=' Verify ']")
                 else:
                     verify_button = browser.find_element(By.XPATH,"//span[text()=' CONFIRM ']")
+                    verify_button.click()
                 verify_button.click()
                 del browser.requests
                 return
@@ -292,7 +282,7 @@ while True:
                     Next.click()
                     try:
                         WebDriverWait(browser, 10).until(EC.presence_of_all_elements_located((By.XPATH,"//div[@class='v-snack__wrapper v-sheet theme--dark error']")))
-                        time.sleep(randint(15,60))
+                        time.sleep(randint(5,6))
                     except:
                         hehe = False
                     
@@ -366,7 +356,7 @@ while True:
                     print('inside the booking process')
 
                     dates = browser.find_elements(By.XPATH, "//div[@class='v-calendar-weekly__day v-present' or @class='v-calendar-weekly__day v-future']")
-                    wanted_dates = [28,29,30,31]
+                    wanted_dates = [30,31]
 
                     for each_date in dates:
                         try:
@@ -448,7 +438,7 @@ while True:
                     # SendNotification('No available slots')
                     # time.sleep(randint(30,60))
                     # browser.refresh()
-                time.sleep(randint(11,16))
+                time.sleep(randint(10,15))
                 browser.refresh()
                 # span1 = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//body//div[@id='app']//div[@class='v-main__wrap']//div[@class='chooseSlot']//div[@class='dateList dateList-web d-none d-md-flex']//button[1]")))
                 # span1.click()
