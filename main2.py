@@ -82,7 +82,7 @@ def RetrieveKeyData(data):
                     start_time = start_time.replace(year=date.year, month=date.month, day=date.day,hour=start_time.hour,minute=start_time.minute)
 
                     print('after start_time is stripped to datetime with replacement' , start_time)
-                    start_time_minus_2hours = start_time - timedelta(hours=2)
+                    start_time_minus_1hours = start_time - timedelta(hours=1)
                     print('start time converted')
 
                     # added catch
@@ -92,12 +92,14 @@ def RetrieveKeyData(data):
                         #   '''
                         #  removed 2 hour wait time need instant response
                         #  '''
-                        if date.month in [5]:
+                        if date.month in [6] :
                            print('the index of the length of session that begins to be suitable is: ',index)
-                           msg = "Found slot proceed to book ! Date: " + str(date)+ "Start Time: " + str(start_time) + "End Time: " + str(end_time) + "." 
+                           msg = "Found slot proceed to book ! Date: \n" + str(date)+ "Start Time: " + str(start_time) + "End Time: " + str(end_time) + "Current time: " + str(date_now) + "Group: " + str(userFixGrpNo) +  "." 
                            SendNotification(msg)
                            return True,index
                         else:
+                            msg = "slot did not meet hour criteria " + str(date)
+
                             continue
                     except:
                         SendNotification('Returned False meaning slot did not meet a 2 hour criteria & desired month')
@@ -281,8 +283,8 @@ while True:
                     Next = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//span[normalize-space()='NEXT']")))
                     Next.click()
                     try:
-                        WebDriverWait(browser, 10).until(EC.presence_of_all_elements_located((By.XPATH,"//div[@class='v-snack__wrapper v-sheet theme--dark error']")))
-                        time.sleep(randint(5,6))
+                        WebDriverWait(browser, 35).until(EC.presence_of_all_elements_located((By.XPATH,"//div[@class='v-snack__wrapper v-sheet theme--dark error']")))
+                        
                     except:
                         hehe = False
                     
@@ -356,7 +358,7 @@ while True:
                     print('inside the booking process')
 
                     dates = browser.find_elements(By.XPATH, "//div[@class='v-calendar-weekly__day v-present' or @class='v-calendar-weekly__day v-future']")
-                    wanted_dates = [30,31]
+                    wanted_dates = [2,3,4,5,6,7,9,10,11,12,13,14,16,17,18,19,20,21,23,24,25,26,27,28,30]
 
                     for each_date in dates:
                         try:
@@ -387,7 +389,7 @@ while True:
                                 print('dtype of all_slots', type(all_slots))
 
                                 print('length of all_slots', len(all_slots))
-                                grey_screen = WebDriverWait(browser, 10).until(EC.invisibility_of_element_located((By.XPATH,"//div[@class='v-overlay__scrim']")))
+                                grey_screen = WebDriverWait(browser, 30).until(EC.invisibility_of_element_located((By.XPATH,"//div[@class='v-overlay__scrim']")))
 
                                 try:
                                     for index,value in enumerate(all_slots):
@@ -422,6 +424,11 @@ while True:
                                             msg += "\n"
                                         SendNotification(msg)
                                         fkingwork = False
+                                        hehe= True
+                                    else:
+                                        msg = "Fail bot too slow"
+                                        SendNotification(msg)
+                                        hehe = True
                                 except:
                                     pass
 
@@ -438,7 +445,7 @@ while True:
                     # SendNotification('No available slots')
                     # time.sleep(randint(30,60))
                     # browser.refresh()
-                time.sleep(randint(10,15))
+                time.sleep(randint(1,3))
                 browser.refresh()
                 # span1 = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//body//div[@id='app']//div[@class='v-main__wrap']//div[@class='chooseSlot']//div[@class='dateList dateList-web d-none d-md-flex']//button[1]")))
                 # span1.click()
