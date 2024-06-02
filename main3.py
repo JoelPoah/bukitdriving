@@ -26,6 +26,8 @@ people_msg = [
 
 
 
+
+
 browser = webdriver.Chrome()
 # browser = webdriver.Chrome(options=chrome_options)
 stealth(browser,
@@ -197,6 +199,63 @@ def captcha_code():
     except:
         pass        
     
+def AUTH_Decrypt():
+    print('executing AUTH_Decrypt()')
+    # Execute JavaScript to retrieve all localStorage data
+    local_storage = browser.execute_script("return window.localStorage.getItem('vuex');")
+
+    # Convert the localStorage string to a dictionary
+    local_storage = json.loads(local_storage)
+
+    authToken = local_storage['user']['authToken']
+    # remove the % from the token
+    authToken = authToken.replace('%',' ')
+
+
+    # authorization = local_storage['user']['authToken']
+    # print('authorization retrieved',authorization)
+
+
+    # WELL TECHNICALLY COOKIE IS JUST bbdc-token=${authToken}
+
+    # cookie = 'bbdc-token='+authToken
+
+    # Retrieve cookie
+    cookies = browser.get_cookies()
+    cookie = next((cookie['value'] for cookie in cookies if cookie['name'] == 'bbdc-token'), None)
+
+    for request in reversed(browser.requests):
+        if "account/getUserProfile" in request.url:
+                jsessionid = request.headers['jsessionid']
+                # data = data.decode("utf8")
+                # data = json.loads(data)
+                # Jsessionid = data['data']['jsessionid']
+        else:
+            pass
+    return authToken,cookie,jsessionid
+
+def POST_REQ(auth, cookie, jsessionid, url, data):
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': auth,
+        'Cookie': cookie,
+        'Jsessionid': jsessionid
+    }
+
+    print('this is the headers',headers)
+    response = requests.post(url, headers=headers,data=data)
+    print('response from post request',response)
+
+# Example usage:
+# auth = "Bearer your_token"
+# cookie = "your_cookie"
+# jsessionid = "your_jsessionid"
+# url = "https://example.com/api"
+# data = {"key": "value"}
+# response = POST_REQ(auth, cookie, jsessionid, url, data)
+
+
+
 
 wait_time = 100
 browser.get('https://booking.bbdc.sg/#/login?redirect=%2Fbooking')
@@ -281,182 +340,21 @@ while True:
                     No_Fix_Instructor.click()
                     Next = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//span[normalize-space()='NEXT']")))
                     Next.click()
+                    AUTH,COOKIE,JSESSIONID=AUTH_Decrypt()
+
+                    print("returned data")
+                    print(AUTH,"\n",COOKIE,"\n",JSESSIONID)
+                    # res = POST_REQ(AUTH,COOKIE,JSESSIONID,"https://booking.bbdc.sg/bbdc-back-service/api/booking/c3practical/listC3PracticalTrainings",{"courseType": "3C", "pageNo": 1, "pageSize": 10, "courseSubType": "Practical"})
+
+
+                    # sleep for 20 seconds to allow the server to process the request
+                    time.sleep(100)
+
                     try:
                         WebDriverWait(browser, 35).until(EC.presence_of_all_elements_located((By.XPATH,"//div[@class='v-snack__wrapper v-sheet theme--dark error']")))
-                        time.sleep(5)
+
                     except:
                         hehe = False
-                    
-
-            
-
-            # test
-            # Test = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//div[normalize-space()='Test']")))
-            # grey_screen = WebDriverWait(browser, wait_time).until(EC.invisibility_of_element_located((By.XPATH,"//div[@class='v-overlay__scrim']")))
-            # Test.click()
-            # grey_screen = WebDriverWait(browser, wait_time).until(EC.invisibility_of_element_located((By.XPATH,"//div[@class='v-overlay__scrim']")))
-            # Book_slots = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//div[@class='v-window-item v-window-item--active']//span[@class='v-btn__content'][normalize-space()='Book Slot']")))
-            # Book_slots.click()
-            # Continue = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//span[normalize-space()='Continue']")))
-            # Continue.click()
-            # Accept_terms = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//div[@class='v-card__actions']//div[@class='v-input--selection-controls__ripple']")))
-            # Accept_terms.click()
-            # Confirm = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//div[@class='v-card__actions']//span[@class='v-btn__content'][normalize-space()='Confirm']")))
-            # Confirm.click()
-            # grey_screen = WebDriverWait(browser, wait_time).until(EC.invisibility_of_element_located((By.XPATH,"//div[@class='v-overlay__scrim']")))
-            
-            # TPDS
-            # WebDriverWait(browser, 20).until(EC.presence_of_element_located((By.XPATH, "//div[9]//div[1]//button[1]//span[1]")))
-            # TPDS_button = WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.XPATH, "//div[9]//div[1]//button[1]//span[1]")))
-            # TPDS_button.click()
-            # WebDriverWait(browser, 20).until(EC.presence_of_element_located((By.XPATH, "//span[normalize-space()='Continue']")))
-            # Continue = WebDriverWait(browser, 20).until(EC.element_to_be_clickable((By.XPATH, "//span[normalize-space()='Continue']")))
-            # time.sleep(1)
-            #Continue.click()
-            running = True
-            while running:
-                if "/login" in browser.current_url:
-                    running = False
-                    running2 = False
-                    running3 = True
-                    running4 = True
-                grey_screen = WebDriverWait(browser, wait_time).until(EC.invisibility_of_element_located((By.XPATH,"//div[@class='v-overlay__scrim']")))
-                WebDriverWait(browser, wait_time).until(EC.presence_of_element_located((By.XPATH, "//div[@class='v-calendar-weekly__day v-present' or @class='v-calendar-weekly__day v-future']//*")))
-
-                # DateReleasedSpan = WebDriverWait(browser, wait_time).until(EC.presence_of_all_elements_located((By.XPATH, "//body//div[@id='app']//div[@class='v-main__wrap']//div[@class='chooseSlot']//div[@class='dateList dateList-web d-none d-md-flex']")))
-
-
-                # span1 = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//body//div[@id='app']//div[@class='v-main__wrap']//div[@class='chooseSlot']//div[@class='dateList dateList-web d-none d-md-flex']//button[1]")))
-                # span1.click()
-
-                # Sends next few closest slots
-                # processed_available_slots = process_json_available_slots()
-                print(f'clicked the 1st button')
-                grey_screen = WebDriverWait(browser, wait_time).until(EC.invisibility_of_element_located((By.XPATH,"//div[@class='v-overlay__scrim']")))
-                WebDriverWait(browser, wait_time).until(EC.presence_of_element_located((By.XPATH, "//div[@class='v-calendar-weekly__day v-present' or @class='v-calendar-weekly__day v-future']//*")))
-                suitable_month,suitable_index = process_json_available_slots()
-
-
-                    
-
-                '''
-                In theory you do not need to click the 2nd and 3rd button as we only want the closest slots now 
-                '''
-                        
-                ''' 
-                I want the Bot to auto book the slot with notification if processed_available_slots is true means it detected a month that we wanted therefore we activate the booking process
-
-                for trial purposes we can set the month to include september which is the earliest date for booking currently
-                '''
-
-                print('suitable_month bool value: ', suitable_month)
-
-                if suitable_month == True:
-
-
-                    print('inside the booking process')
-
-                    dates = browser.find_elements(By.XPATH, "//div[@class='v-calendar-weekly__day v-present' or @class='v-calendar-weekly__day v-future']")
-                    wanted_dates = [4,10,18,24]
-
-                    for each_date in dates:
-                        try:
-                            child_item = each_date
-                            parent_of_div = child_item.find_elements(By.TAG_NAME,"div")
-                            child_child_item = parent_of_div[0].find_elements(By.TAG_NAME,"span")
-
-                            if 'disabled-text' not in (child_child_item[0].get_attribute('class').split()) and int(child_item.text) in wanted_dates :
-                                print("Found slot")
-                                child_item.click() ## This becomes a function later to execute the booking process
-
-                                grey_screen = WebDriverWait(browser, wait_time).until(EC.invisibility_of_element_located((By.XPATH,"//div[@class='v-overlay__scrim']")))
-
-                                # chooseSlotsAvailable = WebDriverWait(browser, wait_time).until(EC.presence_of_element_located((By.CLASS_NAME,"col-mid col col-4")))
-                                # chooseSlots = browser.find_elements(By.CLASS_NAME,"col-mid col col-4")
-
-                                # will Xpath instead
-                                chooseSlotsAvailable = WebDriverWait(browser, wait_time).until(EC.presence_of_element_located((By.XPATH, "//div[@class='col-mid col col-4']")))
-                                chooseSlots = browser.find_elements(By.XPATH,"//div[@class='col-mid col col-4']")
-
-                                print('found chooseSlots !')
-
-                                chooseSlotsContentSession = chooseSlots[0].find_elements(By.XPATH,"//div[@class='sessionContent sessionContent-web d-none d-md-flex']")
-                                print('found chooseSlotsContentSession !')
-                                all_slots = browser.find_elements(By.XPATH,"//div[@class='col-mid col col-4']//div[@class='sessionContent sessionContent-web d-none d-md-flex']//div[@class='sessionCard']")
-
-                                print('all slots found !')
-                                print('dtype of all_slots', type(all_slots))
-
-                                print('length of all_slots', len(all_slots))
-                                grey_screen = WebDriverWait(browser, 30).until(EC.invisibility_of_element_located((By.XPATH,"//div[@class='v-overlay__scrim']")))
-
-                                try:
-                                    for index,value in enumerate(all_slots):
-                                        if index >= suitable_index :
-                                            value.click()
-                                    print('clicked all possible slots')
-                                    
-                                except:
-                                    print('error in clicking all slots')
-                                    pass
-
-                                # find the summary right and click the submit button
-                                submit_button = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//div[@class='col-right col col-4']//button[@type='button']")))
-                                submit_button.click()
-                                confirm = WebDriverWait(browser, 1000).until(EC.element_to_be_clickable((By.XPATH, "//div[@class='v-dialog v-dialog--active']//div[@class='v-card__actions justify-end']//span[normalize-space()='CONFIRM']")))
-                                confirm.click()
-                                
-                                captcha_code()
-                                # since we only want the first date's all slots we can break the loop
-                                # break removed because it screwed up the loop 
-
-                                ignored_exceptions=(NoSuchElementException,StaleElementReferenceException,)
-
-                                try:
-                                    successornot=WebDriverWait(browser, 1000,ignored_exceptions=ignored_exceptions).until(EC.presence_of_element_located((By.XPATH,"//div[@class='item-bottom']//p[@class='text_success' or @class='text_fail']")))
-                                    print(successornot.get_attribute("class"))
-                                    print(successornot.text)
-                                    if "text_success" in successornot.get_attribute("class"):
-                                        msg = "These Slots have been booked!"
-                                        for i in all_slots:
-                                            msg += i.text
-                                            msg += "\n"
-                                        SendNotification(msg)
-                                        fkingwork = False
-                                        hehe= True
-                                    else:
-                                        msg = "Fail bot too slow"
-                                        SendNotification(msg)
-                                        hehe = True
-                                except:
-                                    pass
-
-                            else:
-                                continue
-                                # print("No slot available")
-                        except Exception as e:
-                            print('error in booking function: ',e)
-                            pass
-
-
-                else:
-                    print('Not a desired month for booking shutting down the bot')
-                    # SendNotification('No available slots')
-                    # time.sleep(randint(30,60))
-                    # browser.refresh()
-                time.sleep(randint(1,3))
-                browser.refresh()
-                # span1 = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//body//div[@id='app']//div[@class='v-main__wrap']//div[@class='chooseSlot']//div[@class='dateList dateList-web d-none d-md-flex']//button[1]")))
-                # span1.click()
-                # exit code
-                # running = False
-                # browser.quit()
-                # browser.close()
-                # del browser
-                
-                '''
-                Browser refreshes and running continues
-                '''
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
         fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
