@@ -1,5 +1,5 @@
 run_window_main(){
-    python main2.py &
+    python main3.py &
     FUNNY_PID=$!
 
 }

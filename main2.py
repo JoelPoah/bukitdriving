@@ -283,7 +283,7 @@ while True:
                     Next.click()
                     try:
                         WebDriverWait(browser, 35).until(EC.presence_of_all_elements_located((By.XPATH,"//div[@class='v-snack__wrapper v-sheet theme--dark error']")))
-                        time.sleep(5)
+                        time.sleep(randint(5,10))
                     except:
                         hehe = False
                     

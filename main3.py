@@ -1,4 +1,5 @@
 import json
+import httpx
 from seleniumwire import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -19,9 +20,9 @@ import sys ,os
 from selenium.webdriver.chrome.options import Options
 
 people_msg = [
-    # "https://api.callmebot.com/text.php?user=@JoelPP&text=",
-    "https://api.callmebot.com/text.php?user=@Jessieraven&text=",
-    "https://api.telegram.org/bot6786500283:AAEI6WNk1ZGB7uLtugUbLR_iKYbxwoLM2EE/sendMessage?chat_id=-4188476384&text="
+    "https://api.callmebot.com/text.php?user=@JoelPP&text=",
+    # "https://api.callmebot.com/text.php?user=@Jessieraven&text=",
+    # "https://api.telegram.org/bot6786500283:AAEI6WNk1ZGB7uLtugUbLR_iKYbxwoLM2EE/sendMessage?chat_id=-4188476384&text="
 ]
 
 
@@ -38,83 +39,6 @@ stealth(browser,
         renderer="Intel Iris OpenGL Engine",
         fix_hairline=True,
         )
-
-def RetrieveKeyData(data):
-        data = json.loads(data)
-        slot_data = data['data']['releasedSlotListGroupByDay']
-
-        print('slot data retrieved')
-
-        date_now = datetime.now()
-        # for testing purposes hardcode the date_now to a specific datetime 
-        # date_now = datetime.strptime('16/09/2024 07:00','%d/%m/%Y %H:%M')
-        print('date now: ',date_now)
-
-        if slot_data or slot_data != None or slot_data != [] or slot_data != {} or slot_data != "null" or slot_data != "undefined" or slot_data != "":
-
-            print('success if dict type', type(slot_data))
-
-            # take out all the keys ,values['startTime,'endTime']
-
-            msg=""
-
-            for key, value in slot_data.items():
-                # print(key, value)
-                for index,slot_row in enumerate(value):
-                    date = slot_row['slotRefDate']
-                    start_time = slot_row['startTime']
-                    userFixGrpNo = slot_row['userFixGrpNo']
-                    print('userFixGrpNo: ',userFixGrpNo)
-                    start_time_str = start_time
-                    print('start time retrieved')
-
-
-                    end_time = slot_row['endTime']
-                    total_fee = slot_row['totalFee']
-
-
-                    # convert date to a proper date format
-                    date = datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
-
-                    print('before start_time is stripped to datetime' , start_time)
-
-                    start_time = datetime.strptime(start_time,'%H:%M')
-
-                    print('after start_time is stripped to datetime' , start_time)
-                    start_time = start_time.replace(year=date.year, month=date.month, day=date.day,hour=start_time.hour,minute=start_time.minute)
-
-                    print('after start_time is stripped to datetime with replacement' , start_time)
-                    start_time_minus_1hours = start_time - timedelta(hours=1)
-                    print('start time converted')
-
-                    # added catch
-                    try:
-                        # if it is the desired month and also 2 hours before the slot
-                        #if date.month in [5] and date_now<=(start_time_minus_2hours):
-                        #   '''
-                        #  removed 2 hour wait time need instant response
-                        #  '''
-                        if date.month in [6] :
-                           print('the index of the length of session that begins to be suitable is: ',index)
-                           msg = "Found slot proceed to book ! Date: \n" + str(date)+ "Start Time: " + str(start_time) + "End Time: " + str(end_time) + "Current time: " + str(date_now) + "Group: " + str(userFixGrpNo) +  "." 
-                           SendNotification(msg)
-                           return True,index
-                        else:
-                            msg = "slot did not meet hour criteria " + str(date)
-
-                            continue
-                    except:
-                        SendNotification('Returned False meaning slot did not meet a 2 hour criteria & desired month')
-
-                return False,0
-
-
-                # SendNotification(str(msg)) 
-                ''' 
-                For Auto Booking its not necessary to notify available slots but auto take the slot and book it
-                '''
-        else:
-            return False,0
 
 
 
@@ -136,37 +60,7 @@ def SendNotification(text):
             requests.post(url)
         
         # Move to the next chunk
-        current_index = end_index
-
-def process_json_available_slots():
-    try:
-
-        booking_ready = WebDriverWait(browser, 100).until(EC.presence_of_element_located((By.XPATH, "//div[@class='container container--fluid']")))
-        print('booking ready')
-        for request in reversed(browser.requests):
-            print('yes reverse works')
-            if "c3practical/listC3PracticalSlotReleased" in request.url:
-                print('inside the network traffic')
-                data = sw_decode(request.response.body, request.response.headers.get('Content-Encoding', 'identity'))
-                data = data.decode("utf8")
-                print('if is str is working',type(data))
-                Wanted_Month,IndexOfSlots = RetrieveKeyData(data)
-
-                return Wanted_Month,IndexOfSlots
-            else:
-                pass
-    except:
-            print('error in process_json_available_slots() or RetrieveKeyData()')
-            # SendNotification('ERROR process_json_available_slots()')
-            return False,0
-            
-def filter_wanted_slots(slot_data):
-    # take the keys of all the slot_data 
-    dates_available = slot_data.keys()
-    # convert to a string 
-    dates_available = [str(date) for date in dates_available]
-    return dates_available
-
+        current_index = end_index        
     
 
 def captcha_code():
@@ -201,31 +95,10 @@ def captcha_code():
     
 def AUTH_Decrypt():
     print('executing AUTH_Decrypt()')
-    # Execute JavaScript to retrieve all localStorage data
-    local_storage = browser.execute_script("return window.localStorage.getItem('vuex');")
-
-    # Convert the localStorage string to a dictionary
-    local_storage = json.loads(local_storage)
-
-    authToken = local_storage['user']['authToken']
-    # remove the % from the token
-    authToken = authToken.replace('%',' ')
-
-
-    # authorization = local_storage['user']['authToken']
-    # print('authorization retrieved',authorization)
-
-
-    # WELL TECHNICALLY COOKIE IS JUST bbdc-token=${authToken}
-
-    # cookie = 'bbdc-token='+authToken
-
-    # Retrieve cookie
-    cookies = browser.get_cookies()
-    cookie = next((cookie['value'] for cookie in cookies if cookie['name'] == 'bbdc-token'), None)
-
     for request in reversed(browser.requests):
-        if "account/getUserProfile" in request.url:
+        if "c3practical/checkC3UserGroup" in request.url:
+                authToken = request.headers['Authorization']
+                cookie = request.headers['Cookie']
                 jsessionid = request.headers['jsessionid']
                 # data = data.decode("utf8")
                 # data = json.loads(data)
@@ -234,27 +107,39 @@ def AUTH_Decrypt():
             pass
     return authToken,cookie,jsessionid
 
-def POST_REQ(auth, cookie, jsessionid, url, data):
+def POST_REQ(auth, cookie, jsessionid, url, data={}):
     headers = {
-        'Content-Type': 'application/json',
+        'User-Agent': 'Postman',
         'Authorization': auth,
         'Cookie': cookie,
         'Jsessionid': jsessionid
     }
 
-    print('this is the headers',headers)
-    response = requests.post(url, headers=headers,data=data)
-    print('response from post request',response)
-
-# Example usage:
-# auth = "Bearer your_token"
-# cookie = "your_cookie"
-# jsessionid = "your_jsessionid"
-# url = "https://example.com/api"
-# data = {"key": "value"}
-# response = POST_REQ(auth, cookie, jsessionid, url, data)
-
-
+    try:
+        response = httpx.post(url, headers=headers, json=data)
+        response.raise_for_status()  # Raises an HTTPError for bad responses
+        print('Response from POST request:', response.status_code, response.text)
+        return response
+    except httpx.RequestError as e:
+        print(f"An error occurred: {e}")
+        return None
+def check(slots):
+    print('executing check()')
+    month = 6
+    wanted_days = [4,10,18,24]
+    slot_data = slots['data']['releasedSlotListGroupByDay']
+    for key,value in slot_data.items():
+        for index,slot_row in enumerate(value):
+            date = slot_row['slotRefDate']
+            # convert date to a proper date format
+            date = datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
+            # filter only month
+            if date.month == month:
+                # filter only the wanted days
+                if date.day in wanted_days:
+                    print('found the slot')
+                    return slot_row
+    return None
 
 
 wait_time = 100
@@ -333,7 +218,6 @@ while True:
                             pass
                         Booking_button = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//div[text()='Booking']")))
                         Booking_button.click()
-                    print("im here")
                     Book_slots = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//body//div[@id='app']//div[@class='row']//div[@class='row']//div[1]//div[1]//button[1]//span[1]")))
                     Book_slots.click()
                     No_Fix_Instructor= WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//div[@role='radiogroup']//div[1]//div[1]//div[1]")))
@@ -342,13 +226,93 @@ while True:
                     Next.click()
                     AUTH,COOKIE,JSESSIONID=AUTH_Decrypt()
 
-                    print("returned data")
-                    print(AUTH,"\n",COOKIE,"\n",JSESSIONID)
-                    # res = POST_REQ(AUTH,COOKIE,JSESSIONID,"https://booking.bbdc.sg/bbdc-back-service/api/booking/c3practical/listC3PracticalTrainings",{"courseType": "3C", "pageNo": 1, "pageSize": 10, "courseSubType": "Practical"})
+                    print(AUTH + "\n" + COOKIE + "\n" + JSESSIONID)
 
 
-                    # sleep for 20 seconds to allow the server to process the request
-                    time.sleep(100)
+                    slots= POST_REQ(AUTH,COOKIE,JSESSIONID,"https://booking.bbdc.sg/bbdc-back-service/api/booking/c3practical/listC3PracticalSlotReleased",{
+                        "courseType": "3C",
+                        "insInstructorId": "",
+                        "stageSubDesc": "Practical Lesson",
+                        "subVehicleType": None,
+                        "subStageSubNo": None
+                    })
+
+                    print('slots retrieved')
+
+                    # print("before json loads ",type(slots))
+
+                    slots = slots.json()    
+
+                    print("after json loads ",type(slots))
+
+
+                    single_wanted_booking = check(slots)
+
+                    if single_wanted_booking:
+                        print('single wanted booking found')
+                        slotId = single_wanted_booking['slotId']
+                        slotIdEnc = single_wanted_booking['slotIdEnc']
+                        bookingProgressEnc = single_wanted_booking['bookingProgressEnc']
+
+                        captcha_call = POST_REQ(AUTH,COOKIE,JSESSIONID,"https://booking.bbdc.sg/bbdc-back-service/api/booking/manage/getCaptchaImage",{})
+
+                        captcha_call = captcha_call.json()
+                        captcha_token = captcha_call['data']['captchaToken']
+                        verifyCodeId = captcha_call['data']['verifyCodeId']
+                        captcha_word = jwt.decode(captcha_token, options={"verify_signature": False})['VER']
+
+                        print('captcha retrieved now booking call')
+                        booking_call = POST_REQ(AUTH,COOKIE,JSESSIONID,"https://booking.bbdc.sg/bbdc-back-service/api/booking/c3practical/callBookC3PracticalSlot",
+                                            {
+                        "courseType": "3C",
+                        "slotIdList": [
+                        slotId
+                        ],
+                        "encryptSlotList": [
+                        {
+                        "slotIdEnc": slotIdEnc,
+                        "bookingProgressEnc": bookingProgressEnc
+                        }
+                        ],
+                        "verifyCodeId": verifyCodeId,
+                        "verifyCodeValue": captcha_word,
+                        "captchaToken": captcha_token,
+                        "insInstructorId": "",
+                        "subVehicleType": None,
+                        })
+
+                        date = single_wanted_booking['slotRefDate']
+
+                        print('date:',date)
+                        start_time = single_wanted_booking['startTime']
+                        print('start_time:',start_time)
+                        end_time = single_wanted_booking['endTime']
+                        print('end_time:',end_time)
+
+
+                        booking_call = booking_call.json()
+
+                        
+
+                        if booking_call['success'] == True:
+                            print('Booking Successful')
+                            SendNotification('Booking Successful')
+                            SendNotification(str(date))
+                            SendNotification(start_time)
+                            SendNotification(end_time)
+
+                        else:
+                            print('Booking Failed')
+                            SendNotification('Booking Failed')
+                            SendNotification(str(date))
+                            SendNotification(start_time)
+                            SendNotification(end_time)
+
+
+
+
+                    # sleep for 100 seconds to allow the server to process the request
+                    time.sleep(30)
 
                     try:
                         WebDriverWait(browser, 35).until(EC.presence_of_all_elements_located((By.XPATH,"//div[@class='v-snack__wrapper v-sheet theme--dark error']")))
