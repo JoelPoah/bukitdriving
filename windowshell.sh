@@ -1,11 +1,11 @@
 run_window_main(){
-    python main2.py &
+    python main3.py &
     FUNNY_PID=$!
 
 }
 
 while true; do
     run_window_main
-    sleep 1200
+    sleep 3600
     kill $FUNNY_PID
 done
