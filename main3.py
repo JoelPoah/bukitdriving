@@ -35,16 +35,30 @@ chrome_options = Options()
 chrome_options.add_argument("proxy-server="+proxies[randint(0,len(proxies)-1)])
 browser = webdriver.Chrome(options=chrome_options)
 # Use Selenium-Stealth to make this browser instance stealthy
+random_platforms = [
+    "Win32",
+    "Win64",
+    "MacIntel",
+    "Windows NT 10.0; Win64; x64",
+    "Linux x86_64",
+    "Linux i686"
+]
+
+random_platform = random_platforms[randint(0,len(random_platforms)-1)]
+
+print("Random Platform: ",random_platform)
+
+
+# Use Selenium-Stealth to make this browser instance stealthy
 stealth(
     browser,
     languages=["en-US", "en"],  # Specify the languages supported by the browser
     vendor="Google Inc.",       # Set the vendor of the browser
-    platform="Windows",           # Specify the platform on which the browser is running
+    platform=random_platform,           # Specify the platform on which the browser is running
     webgl_vendor="Intel Inc.",   # Spoof the WebGL rendering engine vendor
-    renderer="Intel Iris OpenGL Engine",  # Spoof the WebGL rendering engine renderer
-    fix_hairline=True           # Enable fixing a specific issue related to headless browsing
+    renderer= "Intel Iris OpenGL Engine",  # Spoof the WebGL rendering engine renderer
+    fix_hairline= False         # Enable fixing a specific issue related to headless browsing
 )
-
 
 
 def SendNotification(text):
@@ -133,7 +147,7 @@ def POST_REQ(auth, cookie, jsessionid, url, data={}):
 def check(slots):
     print('executing check()')
     month = 6
-    wanted_days = [11,12,13,14,16,17,18,19,20,21,23,24,25,26,27,28,30]
+    wanted_days = [19,20,21,23,24,25,26,27,28,30]
     try:
         slot_data = slots['data']['releasedSlotListGroupByDay']
         for key,value in slot_data.items():
@@ -142,9 +156,11 @@ def check(slots):
                 # convert date to a proper date format
                 date = datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
                 # filter only month
+                start_time = slot_row['startTime']
+                start_time = datetime.strptime(start_time, '%H:%M')
                 if date.month == month:
                     # filter only the wanted days
-                    if date.day in wanted_days:
+                    if date.day in wanted_days and start_time.hour >= 12:
                         print('found the slot')
                         return slot_row
     except Exception as e:
@@ -206,6 +222,8 @@ while True:
                 running2 = False
             ## practical
             grey_screen = WebDriverWait(browser, wait_time).until(EC.invisibility_of_element_located((By.XPATH,"//div[@class='v-overlay__scrim']")))
+            Booking_Dropdown = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="app"]/div/div/nav/div[1]/div[3]/div[2]/div/div[1]')))
+            Booking_Dropdown.click()
             Practical = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//div[normalize-space()='Practical']")))
             grey_screen = WebDriverWait(browser, wait_time).until(EC.invisibility_of_element_located((By.XPATH,"//div[@class='v-overlay__scrim']")))
             Practical.click()
