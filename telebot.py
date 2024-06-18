@@ -2,8 +2,9 @@ import asyncio
 import logging
 import json
 import subprocess
+import httpx
 from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove
-from telegram.ext import Application, CommandHandler, ConversationHandler, MessageHandler, CallbackQueryHandler, CallbackContext, filters, ContextTypes
+from telegram.ext import Application, CommandHandler, ConversationHandler, MessageHandler, CallbackQueryHandler, CallbackContext, filters, ContextTypes,PreCheckoutQueryHandler
 
 # Enable logging
 logging.basicConfig(
@@ -37,7 +38,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         '''
 What this bot does:
-We are a team of individuals who will assist in booking your BBDC practical lessons slots based on your given schedule.
+Booking your BBDC practical lessons slots based on your given schedule. Even Next Day Slots are guaranteed!
 
 ✅ Supported: Class 3/3A Practical lessons
 ❌ Not supported: FTT/BTT/TPDS/DS
@@ -48,7 +49,7 @@ See /credits command for more information.
 
 How to use:
 1. Use /set_login command to update your BBDC username and password.
-2. Add bot credits with /credits command.
+2. Add bot credits with /credits command. PM @JoelPP for better rates.
 3. Use the /choose_session command to select the practical sessions you are available for.
 4. Use the /start_checking command to start checking for new slots. We will automatically do it for you and inform you if you got a slot. Use the /stop_checking command to stop checking for new slots.
 5. The bot will notify you once a slot is found and booked for you.
@@ -96,7 +97,7 @@ async def profile_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     if LOCATED_USER:
         await update.message.reply_text(
-            f"Your username is {LOCATED_USER['USERNAME']} and password is {LOCATED_USER['PASSWORD']} \nYour selected dates are {LOCATED_USER.get('DATES', 'Not set')}"
+            f"Your username is {LOCATED_USER['USERNAME']} and password is {LOCATED_USER['PASSWORD']} \nYour selected dates are {LOCATED_USER.get('DATES', 'Not set')}\nYour current credits are {LOCATED_USER.get('CREDITS', 0)}"
         )
     else:
         await update.message.reply_text(
@@ -141,6 +142,14 @@ async def start_checking(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("Please set your login credentials with /set_login")
             return
         
+        if 'DATES' not in user_data:
+            await update.message.reply_text("Please choose your available dates with /choose_session")
+            return
+        if 'CREDITS' not in user_data or user_data['CREDITS'] < 1:
+            await update.message.reply_text("Please add credits with /credits")
+            return
+        
+        
         command = [
             'python', 'subbookingprocess.py',
             '--chatid', user_id,
@@ -177,7 +186,37 @@ async def stop_checking(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     except Exception as e:
         await update.message.reply_text(f"Error stopping process: {e}")
+        
+async def add_credits_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    prices = [{"label":"Credits","amount":1000}] # amount is in the smallest currency unit (e.g., cents)
+    await update.message.reply_invoice(
+        title="Add Credits",
+        description="Add credits to your account for booking slots.",
+        # provider_token='284685063:TEST:ZmU1ODA4OGJlOGQx',
+        provider_token='350862534:LIVE:Njk2NzU2NzQ3MjA0',
+        currency="SGD",
+        prices=prices,
+        payload="add_credits"
+    )
 
+async def pre_checkout_query_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.pre_checkout_query
+    await context.bot.answer_pre_checkout_query(pre_checkout_query_id=query.id, ok=True)
+    
+    return ConversationHandler.END
+
+
+async def successful_payment_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = str(update.message.from_user.id)
+    USERS[user_id]['CREDITS'] = USERS.get(user_id, {}).get('CREDITS', 0) + 1
+    await refresh_users()
+    await update.message.reply_text("Payment successful! 1 credits have been added to your account.")
+
+    
+
+
+
+    
 def main():
     application = Application.builder().token(TOKEN).build()
     
@@ -202,12 +241,20 @@ def main():
         fallbacks=[],
     )
     
+    
+    
     error_handler = MessageHandler(filters.TEXT & ~filters.COMMAND, lambda update, context: update.message.reply_text("Invalid command."))
     
     
     start_command_handler = CommandHandler('start_checking', start_checking)
     stop_command_handler = CommandHandler('stop_checking', stop_checking)
     check_booking_history_handler = CommandHandler('booking_history', check_booking_history)
+    credits_command_handler = CommandHandler('credits', add_credits_command)
+    
+    pre_checkout_handler = PreCheckoutQueryHandler(pre_checkout_query_handler)
+    
+    successful_payment_handlers = MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment_handler)
+    
     
     application.add_handler(start_handler)
     application.add_handler(profile_handler)
@@ -216,10 +263,13 @@ def main():
     application.add_handler(stop_command_handler)
     application.add_handler(conv_handler)
     application.add_handler(check_booking_history_handler)
+    application.add_handler(credits_command_handler)
+    application.add_handler(pre_checkout_handler)
+    application.add_handler(successful_payment_handlers)
     application.add_error_handler(error_handler)
     
     
-    application.run_polling()
+    application.run_polling(timeout=30)
 
 if __name__ == '__main__':
     main()

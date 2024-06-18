@@ -5,8 +5,17 @@
         "PASSWORD": "020975",
         "DATES": [
             19,
-            20
+            20,
+            21,
+            23,
+            24,
+            25,
+            26,
+            27,
+            28,
+            30
         ],
-        "SUBPROCESS_ID": null
+        "SUBPROCESS_ID": 35240,
+        "CREDITS": 1001
     }
 }
