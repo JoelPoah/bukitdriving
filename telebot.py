@@ -1,6 +1,8 @@
 import asyncio
 import logging
 import json
+import os
+import signal
 import subprocess
 import httpx
 from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove
@@ -158,7 +160,8 @@ async def start_checking(update: Update, context: ContextTypes.DEFAULT_TYPE):
         ]
         
         #creationflags = subprocess.CREATE_NEW_CONSOLE
-        process = subprocess.Popen(command, creationflags=subprocess.CREATE_NEW_CONSOLE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,start_new_session=True)
+        process = subprocess.Popen(command,creationflags=subprocess.CREATE_NEW_CONSOLE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,start_new_session=True)
+        
         
         USERS[user_id]['SUBPROCESS_ID'] = process.pid
         await refresh_users()
@@ -178,7 +181,8 @@ async def stop_checking(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_id = str(update.message.from_user.id)
         
         if 'SUBPROCESS_ID' in USERS[user_id]:
-            subprocess.Popen(['kill', '-9', str(USERS[user_id]['SUBPROCESS_ID'])])
+            os.kill(USERS[user_id]['SUBPROCESS_ID'], signal.SIGTERM)  # or signal.SIGKILL for a forceful kill
+            # subprocess.Popen(['kill', '-9', str(USERS[user_id]['SUBPROCESS_ID'])])
             USERS[user_id]['SUBPROCESS_ID'] = None
             await refresh_users()
             await update.message.reply_text(f"Stopped the process for user {user_id}")

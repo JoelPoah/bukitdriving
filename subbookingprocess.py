@@ -38,7 +38,7 @@ random_platforms = [
 
 
 
-async def book_function(chatid,username,password,dates,stop_event):
+def book_function(chatid,username,password,dates,stop_event):
 
     def captcha_code():
         try:
@@ -86,7 +86,7 @@ async def book_function(chatid,username,password,dates,stop_event):
             else:
                 pass
         return authToken,cookie,jsessionid
-    async def POST_REQ(auth, cookie, jsessionid, url, data={}):
+    def POST_REQ(auth, cookie, jsessionid, url, data={}):
         headers = {
             'Origin':'https://booking.bbdc.sg',
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
@@ -96,7 +96,6 @@ async def book_function(chatid,username,password,dates,stop_event):
         }
         try:
             response = httpx.post(url, headers=headers, json=data, timeout=30)
-            SendNotification(f"Response from POST request: {response.status_code} {response.text}")
             response.raise_for_status()  # Raises an HTTPError for bad responses
             print('Response from POST request:', response.status_code, response.text)
             return response
@@ -114,7 +113,6 @@ async def book_function(chatid,username,password,dates,stop_event):
         wanted_days = dates
         try:
             slot_data = slots['data']['releasedSlotListGroupByDay']
-            SendNotification("inside slot_data")
             for key,value in slot_data.items():
                 for index,slot_row in enumerate(value):
                     date = slot_row['slotRefDate']
@@ -259,16 +257,14 @@ async def book_function(chatid,username,password,dates,stop_event):
                         count = 0
                         SendNotification(str(stop_event))
                         while not stop_event.is_set():
-                            SendNotification('executing api loop')
                             try:
-                                slots= await POST_REQ(AUTH,COOKIE,JSESSIONID,"https://booking.bbdc.sg/bbdc-back-service/api/booking/c3practical/listC3PracticalSlotReleased",{
+                                slots= POST_REQ(AUTH,COOKIE,JSESSIONID,"https://booking.bbdc.sg/bbdc-back-service/api/booking/c3practical/listC3PracticalSlotReleased",{
                                 "courseType": "3C",
                                 "insInstructorId": "",
                                 "stageSubDesc": "Practical Lesson",
                                 "subVehicleType": None,
                                 "subStageSubNo": None
                                 })
-                                SendNotification('slots retrieved')
                                 print('slots retrieved')
                                 # print("before json loads ",type(slots))
                                 slots = slots.json()    
@@ -323,16 +319,16 @@ async def book_function(chatid,username,password,dates,stop_event):
                                     SendNotification(str(date))
                                     SendNotification(start_time)
                                     SendNotification(end_time)
-                                    SendNotification(booking_call["data"]['bookedPracticalSlotList'][-1]['message'])
+                                    # SendNotification(booking_call["data"]['bookedPracticalSlotList'][-1]['message'])
                                     time.sleep(5)
                                 else:
                                     print('Booking Failed')
-                                    SendNotification('Booking Failed')
-                                    SendNotification(str(booking_call))
-                                    SendNotification(str(date))
-                                    SendNotification(start_time)
-                                    SendNotification(end_time)
-                                    SendNotification(booking_call["data"]['bookedPracticalSlotList'][-1]['message'])
+                                    # SendNotification('Booking Failed')
+                                    # SendNotification(str(booking_call))
+                                    # SendNotification(str(date))
+                                    # SendNotification(start_time)
+                                    # SendNotification(end_time)
+                                    # SendNotification(booking_call["data"]['bookedPracticalSlotList'][-1]['message'])
                                     time.sleep(5)
                             else:
                                 # sleep for 100 seconds to allow the server to process the request
@@ -421,7 +417,7 @@ def restart_program(chatid):
 # while True:
 #     time.sleep(1)
     
-# python subbookingprocess.py --chatid 587628950 --username 105F26022004 --password 020975 --dates "[19,20]"
+# python subbookingprocess.py --chatid 587628950 --username 105F26022004 --password 020975 --dates "[20,21,22,23,24,25,26,27,28,29,30,31]"
     
     
 if __name__ == "__main__":
