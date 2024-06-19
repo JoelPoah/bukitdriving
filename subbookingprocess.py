@@ -19,7 +19,7 @@ import jwt
 import sys ,os
 
 from selenium.webdriver.chrome.options import Options
-
+from multiprocessing import Process, Event
 import argparse
 
 
@@ -38,7 +38,7 @@ random_platforms = [
 
 
 
-def book_function(chatid,username,password,dates):
+async def book_function(chatid,username,password,dates,stop_event):
 
     def captcha_code():
         try:
@@ -70,20 +70,23 @@ def book_function(chatid,username,password,dates):
         except:
             pass        
         
-    def AUTH_Decrypt():
+    def AUTH_Decrypt(browser):
         print('executing AUTH_Decrypt()')
         for request in reversed(browser.requests):
             if "account/getUserProfile" in request.url:
                     authToken = request.headers['Authorization']
                     cookie = request.headers['Cookie']
                     jsessionid = request.headers['jsessionid']
+                    
+                    SendNotification(jsessionid)
                     # data = data.decode("utf8")
                     # data = json.loads(data)
                     # Jsessionid = data['data']['jsessionid']
+                    return authToken,cookie,jsessionid
             else:
                 pass
         return authToken,cookie,jsessionid
-    def POST_REQ(auth, cookie, jsessionid, url, data={}):
+    async def POST_REQ(auth, cookie, jsessionid, url, data={}):
         headers = {
             'Origin':'https://booking.bbdc.sg',
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
@@ -93,10 +96,12 @@ def book_function(chatid,username,password,dates):
         }
         try:
             response = httpx.post(url, headers=headers, json=data, timeout=30)
+            SendNotification(f"Response from POST request: {response.status_code} {response.text}")
             response.raise_for_status()  # Raises an HTTPError for bad responses
             print('Response from POST request:', response.status_code, response.text)
             return response
         except httpx.RequestError as e:
+            SendNotification(f"A request error occurred: {e}")
             print(f"An error occurred: {e}")
             return None
     people_msg = [
@@ -109,6 +114,7 @@ def book_function(chatid,username,password,dates):
         wanted_days = dates
         try:
             slot_data = slots['data']['releasedSlotListGroupByDay']
+            SendNotification("inside slot_data")
             for key,value in slot_data.items():
                 for index,slot_row in enumerate(value):
                     date = slot_row['slotRefDate']
@@ -162,7 +168,7 @@ def book_function(chatid,username,password,dates):
     )
     browser.get('https://booking.bbdc.sg/#/login?redirect=%2Fbooking')
     running3 = True
-    while True:
+    while not stop_event.is_set():
         try:
             while running3:
                 username= username
@@ -247,19 +253,22 @@ def book_function(chatid,username,password,dates):
                         #    WebDriverWait(browser, 35).until(EC.presence_of_all_elements_located((By.XPATH,"//div[@class='v-snack__wrapper v-sheet theme--dark error']")))
                         #except:
                         #    hehe = False
-                        AUTH,COOKIE,JSESSIONID=AUTH_Decrypt()
+                        AUTH,COOKIE,JSESSIONID=AUTH_Decrypt(browser)
                         print(AUTH + "\n" + COOKIE + "\n" + JSESSIONID)
                         refresh = True
                         count = 0
-                        while refresh:
+                        SendNotification(str(stop_event))
+                        while not stop_event.is_set():
+                            SendNotification('executing api loop')
                             try:
-                                slots= POST_REQ(AUTH,COOKIE,JSESSIONID,"https://booking.bbdc.sg/bbdc-back-service/api/booking/c3practical/listC3PracticalSlotReleased",{
+                                slots= await POST_REQ(AUTH,COOKIE,JSESSIONID,"https://booking.bbdc.sg/bbdc-back-service/api/booking/c3practical/listC3PracticalSlotReleased",{
                                 "courseType": "3C",
                                 "insInstructorId": "",
                                 "stageSubDesc": "Practical Lesson",
                                 "subVehicleType": None,
                                 "subStageSubNo": None
                                 })
+                                SendNotification('slots retrieved')
                                 print('slots retrieved')
                                 # print("before json loads ",type(slots))
                                 slots = slots.json()    
@@ -328,6 +337,9 @@ def book_function(chatid,username,password,dates):
                             else:
                                 # sleep for 100 seconds to allow the server to process the request
                                 time.sleep(randint(20,30))
+                        if stop_event.is_set():
+                            browser.quit()
+                            break  
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
@@ -335,12 +347,57 @@ def book_function(chatid,username,password,dates):
             error = str(exc_type) + "\n" + str(fname) + "\n" + str(exc_tb.tb_lineno) + "\n" + str(e)
             # requests.post(f"https://api.callmebot.com/text.php?user=@JoelPP&text={urllib.parse.quote_plus(str(error))}")
             browser.refresh()
+        finally:
+            browser.quit()
+            return
+    if stop_event.is_set():
+        browser.quit()
+        return
+def SendNotification(text,chatid):
+    people_msg = [
+    f'https://api.telegram.org/bot7478425020:AAFtYzoZ2pm4QMq6siIbHWz6nsv-xVYcaoo/sendMessage?chat_id={chatid}&text='
+    ]
+    max_chunk_size = 1000  # Maximum characters per batch
+    length_of_text = len(text)
+    current_index = 0
+    while current_index < length_of_text:
+        # Determine the end index for the current batch
+        end_index = min(current_index + max_chunk_size, length_of_text)
+        # Extract the current chunk of text
+        current_chunk = text[current_index:end_index]
+        #Sends the message
+        for i in people_msg:
+            url = i + current_chunk
+            requests.post(url)
+        # Move to the next chunk
+        current_index = end_index 
 
-def run_periodically(interval, func,chatid,username,password,dates):
+def run_periodically(interval, func, chatid, username, password, dates):
     while True:
-        func(chatid,username,password,eval(dates))
-        time.sleep(interval)
+        stop_event = Event()
+        process = Process(target=func, args=(chatid, username, password, eval(dates), stop_event))
         
+        SendNotification(f"Starting the process at {datetime.now()}", chatid)
+        process.start()
+        
+        # Allow the process to run for the specified interval
+        process.join(interval)
+        
+        # If the process is still running after the interval, terminate it
+        if process.is_alive():
+            SendNotification(f"Terminating the process at {datetime.now()}", chatid)
+            stop_event.set()  # Signal the process to stop
+            process.terminate()
+            process.join()  # Ensure the process has finished
+        
+        # Restart the program
+        restart_program(chatid)
+
+def restart_program(chatid):
+    """Restarts the current program."""
+    SendNotification("Restarting the process...", chatid)
+    python = sys.executable
+    os.execl(python, python, *sys.argv)
         
 
 # flag to take in 
@@ -349,31 +406,31 @@ def run_periodically(interval, func,chatid,username,password,dates):
 # 3. dates
 # 4. SendMessage stuff
 # Setting up argument parser
-parser = argparse.ArgumentParser(description="Send notifications to chatid")
-parser.add_argument('--chatid', type=str, required=True, help='Send to Specific ChatID')
-parser.add_argument('--username', type=str, required=True, help='Username for BBDC')
-parser.add_argument('--password', type=str, required=True, help='Password for BBDC')
-parser.add_argument('--dates', type=str, required=True, help='Dates for BBDC')
-args = parser.parse_args()
 
 
 
 # Set the interval to 3600 seconds (1 hour)
-interval = 3600
-interval = 60
+# interval = 3600
 
 # Create and start the thread
-thread = threading.Thread(target=run_periodically, args=(interval, book_function,args.chatid,args.username,args.password,args.dates))
-thread.daemon = True  # Daemonize thread
-thread.start()
+# thread = threading.Thread(target=run_periodically, args=(interval, book_function,args.chatid,args.username,args.password,args.dates))
+# thread.daemon = True  # Daemonize thread
+# thread.start()
 
 # Keep the main program running
-while True:
-    time.sleep(1)
+# while True:
+#     time.sleep(1)
     
-# python subbookingprocess.py --chatid 587628950 --username 105F26022004 --password 020975 --dates "[18]"
+# python subbookingprocess.py --chatid 587628950 --username 105F26022004 --password 020975 --dates "[19,20]"
     
     
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Send notifications to chatid")
+    parser.add_argument('--chatid', type=str, required=True, help='Send to Specific ChatID')
+    parser.add_argument('--username', type=str, required=True, help='Username for BBDC')
+    parser.add_argument('--password', type=str, required=True, help='Password for BBDC')
+    parser.add_argument('--dates', type=str, required=True, help='Dates for BBDC')
+    args = parser.parse_args()
+    interval = 3600
     
-
-       
+    run_periodically(interval, book_function, args.chatid, args.username, args.password, args.dates)

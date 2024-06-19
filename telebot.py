@@ -149,7 +149,6 @@ async def start_checking(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("Please add credits with /credits")
             return
         
-        
         command = [
             'python', 'subbookingprocess.py',
             '--chatid', user_id,
@@ -158,13 +157,15 @@ async def start_checking(update: Update, context: ContextTypes.DEFAULT_TYPE):
             '--dates', json.dumps(user_data['DATES'])
         ]
         
-        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=False, shell=False)
+        #creationflags = subprocess.CREATE_NEW_CONSOLE
+        process = subprocess.Popen(command, creationflags=subprocess.CREATE_NEW_CONSOLE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,start_new_session=True)
         
         USERS[user_id]['SUBPROCESS_ID'] = process.pid
         await refresh_users()
-
+        
+        await update.message.reply_text("Process started successfully.")
     except Exception as e:
-        await update.message.reply_text(f"Error running script: {e}")
+        await update.message.reply_text(f"An error occurred: {str(e)}")
 
 async def check_booking_history(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
