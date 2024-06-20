@@ -5,17 +5,18 @@ import os
 import signal
 import subprocess
 import httpx
+import psutil
 from telegram import Bot, Update, InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove
 from telegram.ext import Application, CommandHandler, ConversationHandler, MessageHandler, CallbackQueryHandler, CallbackContext, filters, ContextTypes,PreCheckoutQueryHandler
 
 # Enable logging
-logging.basicConfig(
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
-)
+# logging.basicConfig(
+#     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+# )
 # set higher logging level for httpx to avoid all GET and POST requests being logged
-logging.getLogger("httpx").setLevel(logging.WARNING)
+# logging.getLogger("httpx").setLevel(logging.WARNING)
 
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__)
 
 # Constants to define conversation states
 USERNAME, PASSWORD, SESSION = range(3)
@@ -30,13 +31,14 @@ def load_users():
 
 USERS = load_users()
 
-TOKEN = "7478425020:AAFtYzoZ2pm4QMq6siIbHWz6nsv-xVYcaoo"
+TOKEN = "7478425020:AAEHGNgDqa590x2xq6bHjMwgorv2F2Nc-D4"
+# TOKEN = '5912342398:AAF6t0WAuaCpksTr8a15kpPOwbCGa0IEG04'
 BOT_USERNAME = "@BBDC_SlotFinder_bot"
 
 
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.message.from_user
-    logger.info("User %s executed /start", user.first_name)
+    # logger.info("User %s executed /start", user.first_name)
     await update.message.reply_text(
         '''
 What this bot does:
@@ -181,7 +183,24 @@ async def stop_checking(update: Update, context: ContextTypes.DEFAULT_TYPE):
         user_id = str(update.message.from_user.id)
         
         if 'SUBPROCESS_ID' in USERS[user_id]:
-            os.kill(USERS[user_id]['SUBPROCESS_ID'], signal.SIGTERM)  # or signal.SIGKILL for a forceful kill
+            
+            subprocess_id = USERS[user_id]['SUBPROCESS_ID']
+            
+            
+            try:
+                parent = psutil.Process(subprocess_id)
+                children = parent.children(recursive=True)
+                for child in children:
+                    child.kill()
+                parent.kill()
+            except psutil.NoSuchProcess:
+                print(f"No process with PID {subprocess_id} was found.")
+            except psutil.AccessDenied:
+                print(f"Permission denied to kill process with PID {subprocess_id}.")
+            # os.kill(USERS[user_id]['SUBPROCESS_ID'], signal.SIGTERM) 
+            # or signal.SIGKILL for a forceful kill
+            # kill the other processes that were spawned by the main process
+            
             # subprocess.Popen(['kill', '-9', str(USERS[user_id]['SUBPROCESS_ID'])])
             USERS[user_id]['SUBPROCESS_ID'] = None
             await refresh_users()
@@ -274,7 +293,8 @@ def main():
     application.add_error_handler(error_handler)
     
     
-    application.run_polling(timeout=30)
+    application.run_polling(timeout=60, bootstrap_retries=3)
+
 
 if __name__ == '__main__':
     main()

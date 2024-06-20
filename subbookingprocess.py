@@ -37,6 +37,7 @@ random_platforms = [
 ]
 
 
+TOKEN = '7478425020:AAEHGNgDqa590x2xq6bHjMwgorv2F2Nc-D4'
 
 def book_function(chatid,username,password,dates,stop_event):
 
@@ -78,7 +79,7 @@ def book_function(chatid,username,password,dates,stop_event):
                     cookie = request.headers['Cookie']
                     jsessionid = request.headers['jsessionid']
                     
-                    SendNotification(jsessionid)
+                    # SendNotification(jsessionid)
                     # data = data.decode("utf8")
                     # data = json.loads(data)
                     # Jsessionid = data['data']['jsessionid']
@@ -86,29 +87,37 @@ def book_function(chatid,username,password,dates,stop_event):
             else:
                 pass
         return authToken,cookie,jsessionid
-    def POST_REQ(auth, cookie, jsessionid, url, data={}):
+    def POST_REQ(auth, cookie, jsessionid,random_platform, url, data={}):
         headers = {
             'Origin':'https://booking.bbdc.sg',
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+            # 'User-Agent': 'PostmanRuntime/7.37.3',
+            'User-Agent': random_platform,
+            # 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
             'Authorization': auth,
             'Cookie': cookie,
             'Jsessionid': jsessionid
         }
         try:
             response = httpx.post(url, headers=headers, json=data, timeout=30)
-            response.raise_for_status()  # Raises an HTTPError for bad responses
-            print('Response from POST request:', response.status_code, response.text)
-            return response
+            
+            # SendNotification(response.text)
+            slots = response.json()
+            # SendNotification(f"Response from POST request: {response.status_code} {response.text}")
+            # response.raise_for_status()  # Raises an HTTPError for bad responses
+            # print('Response from POST request:', response.status_code, response.text)
+            
+            return slots
         except httpx.RequestError as e:
             SendNotification(f"A request error occurred: {e}")
             print(f"An error occurred: {e}")
             return None
     people_msg = [
-    f'https://api.telegram.org/bot7478425020:AAFtYzoZ2pm4QMq6siIbHWz6nsv-xVYcaoo/sendMessage?chat_id={chatid}&text='
+    f'https://api.telegram.org/bot{TOKEN}/sendMessage?chat_id={chatid}&text='
     ]
     
     def check(slots):
-        print('executing check()')
+        if count == 0:
+            SendNotification('executing check()')
         month = datetime.now().month
         wanted_days = dates
         try:
@@ -126,6 +135,8 @@ def book_function(chatid,username,password,dates,stop_event):
                         if date.day in wanted_days and start_time.hour >= 8:
                             print('found the slot')
                             return slot_row
+                        
+
         except Exception as e:
             print('error in check()')
             print(e)
@@ -133,9 +144,15 @@ def book_function(chatid,username,password,dates,stop_event):
 
 
     def SendNotification(text):
-        max_chunk_size = 1000  # Maximum characters per batch
-        length_of_text = len(text)
-        current_index = 0
+        
+        try:
+            max_chunk_size = 1000  # Maximum characters per batch
+            length_of_text = len(text)
+            current_index = 0
+        except Exception as e:
+            SendNotification(f'error in SendNotification(), {e}')
+            print('error in SendNotification()')
+            print(e)
         while current_index < length_of_text:
             # Determine the end index for the current batch
             end_index = min(current_index + max_chunk_size, length_of_text)
@@ -255,20 +272,28 @@ def book_function(chatid,username,password,dates,stop_event):
                         print(AUTH + "\n" + COOKIE + "\n" + JSESSIONID)
                         refresh = True
                         count = 0
-                        SendNotification(str(stop_event))
+                        # SendNotification(str(stop_event))
                         while not stop_event.is_set():
                             try:
-                                slots= POST_REQ(AUTH,COOKIE,JSESSIONID,"https://booking.bbdc.sg/bbdc-back-service/api/booking/c3practical/listC3PracticalSlotReleased",{
+                                
+                                if stop_event.is_set():
+                                    browser.quit()
+                                    break
+                                
+                                slots= POST_REQ(AUTH,COOKIE,JSESSIONID,random_platform,"https://booking.bbdc.sg/bbdc-back-service/api/booking/c3practical/listC3PracticalSlotReleased",{
                                 "courseType": "3C",
                                 "insInstructorId": "",
                                 "stageSubDesc": "Practical Lesson",
                                 "subVehicleType": None,
                                 "subStageSubNo": None
                                 })
-                                print('slots retrieved')
-                                # print("before json loads ",type(slots))
-                                slots = slots.json()    
-                                print("after json loads ",type(slots))
+                                
+                                
+                                if isinstance(slots, dict) and count == 0:
+                                    SendNotification('API WORKING')
+                                else:
+                                    continue
+
                                 single_wanted_booking = check(slots)
                             except Exception as e:
                                 print('error in slots retrieval')
@@ -323,12 +348,12 @@ def book_function(chatid,username,password,dates,stop_event):
                                     time.sleep(5)
                                 else:
                                     print('Booking Failed')
-                                    # SendNotification('Booking Failed')
+                                    SendNotification('Booking Failed')
                                     # SendNotification(str(booking_call))
                                     # SendNotification(str(date))
                                     # SendNotification(start_time)
                                     # SendNotification(end_time)
-                                    # SendNotification(booking_call["data"]['bookedPracticalSlotList'][-1]['message'])
+                                    SendNotification(booking_call["data"]['bookedPracticalSlotList'][-1]['message'])
                                     time.sleep(5)
                             else:
                                 # sleep for 100 seconds to allow the server to process the request
@@ -351,7 +376,7 @@ def book_function(chatid,username,password,dates,stop_event):
         return
 def SendNotification(text,chatid):
     people_msg = [
-    f'https://api.telegram.org/bot7478425020:AAFtYzoZ2pm4QMq6siIbHWz6nsv-xVYcaoo/sendMessage?chat_id={chatid}&text='
+    f'https://api.telegram.org/bot{TOKEN}/sendMessage?chat_id={chatid}&text='
     ]
     max_chunk_size = 1000  # Maximum characters per batch
     length_of_text = len(text)
@@ -383,11 +408,13 @@ def run_periodically(interval, func, chatid, username, password, dates):
         if process.is_alive():
             SendNotification(f"Terminating the process at {datetime.now()}", chatid)
             stop_event.set()  # Signal the process to stop
+            time.sleep(10)  # Wait for the process to terminate
             process.terminate()
             process.join()  # Ensure the process has finished
         
         # Restart the program
-        restart_program(chatid)
+        # restart_program(chatid)
+        run_periodically(interval, func, chatid, username, password, dates)
 
 def restart_program(chatid):
     """Restarts the current program."""
@@ -396,6 +423,20 @@ def restart_program(chatid):
     os.execl(python, python, *sys.argv)
         
 
+
+
+    
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Send notifications to chatid")
+    parser.add_argument('--chatid', type=str, required=True, help='Send to Specific ChatID')
+    parser.add_argument('--username', type=str, required=True, help='Username for BBDC')
+    parser.add_argument('--password', type=str, required=True, help='Password for BBDC')
+    parser.add_argument('--dates', type=str, required=True, help='Dates for BBDC')
+    args = parser.parse_args()
+    interval = 3600
+    
+    run_periodically(interval, book_function, args.chatid, args.username, args.password, args.dates)
+    
 # flag to take in 
 # 1. username
 # 2. password
@@ -419,14 +460,3 @@ def restart_program(chatid):
     
 # python subbookingprocess.py --chatid 587628950 --username 105F26022004 --password 020975 --dates "[20,21,22,23,24,25,26,27,28,29,30,31]"
     
-    
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Send notifications to chatid")
-    parser.add_argument('--chatid', type=str, required=True, help='Send to Specific ChatID')
-    parser.add_argument('--username', type=str, required=True, help='Username for BBDC')
-    parser.add_argument('--password', type=str, required=True, help='Password for BBDC')
-    parser.add_argument('--dates', type=str, required=True, help='Dates for BBDC')
-    args = parser.parse_args()
-    interval = 3600
-    
-    run_periodically(interval, book_function, args.chatid, args.username, args.password, args.dates)

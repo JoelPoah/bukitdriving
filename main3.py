@@ -147,7 +147,7 @@ def POST_REQ(auth, cookie, jsessionid, url, data={}):
 def check(slots):
     print('executing check()')
     month = 6
-    wanted_days = [20,21,23,24,25,26,27,28,30]
+    wanted_days = [22,23,24,25,26,27,28,30]
     try:
         slot_data = slots['data']['releasedSlotListGroupByDay']
         for key,value in slot_data.items():
