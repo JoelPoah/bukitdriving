@@ -56,21 +56,10 @@ while $run; do
             wait $RYAN_PID
             pkill -TERM -P $RYAN_PID
 
-            kill -TERM $STEPHY_PID
-            wait $STEPHY_PID
-            pkill -TERM -P $STEPHY_PID
-
-            # kill -TERM $CHINA_PID
-            # wait $CHINA_PID
-            # pkill -TERM -P $CHINA_PID
-
             #kill -TERM $JOEL_PID
             #wait $JOEL_PID
             #pkill -TERM -P $JOEL_PID
 
-            # kill -TERM $ASHWARY_PID
-            # wait $ASHWARY_PID
-            # pkill -TERM -P $ASHWARY_PID
 
             sleep 10
             rm ./stop_signal.txt
@@ -80,26 +69,14 @@ while $run; do
     done
 
     if $run; then
-        # kill -TERM $ASHWARY_PID
-        # wait $ASHWARY_PID
-        # pkill -TERM -P $ASHWARY_PID
-
         kill -TERM $RYAN_PID
         wait $RYAN_PID
         pkill -TERM -P $RYAN_PID
 
-        # kill -TERM $CHINA_PID
-        # wait $CHINA_PID
-        # pkill -TERM -P $CHINA_PID
 
         #kill -TERM $JOEL_PID
         #wait $JOEL_PID
         #pkill -TERM -P $JOEL_PID
-
-
-        kill -TERM $STEPHY_PID
-        wait $STEPHY_PID
-        pkill -TERM -P $STEPHY_PID
 
         sleep 10
 
