@@ -122,9 +122,26 @@ def AUTH_Decrypt():
                 # data = data.decode("utf8")
                 # data = json.loads(data)
                 # Jsessionid = data['data']['jsessionid']
+                
+
+                
         else:
             pass
     return authToken,cookie,jsessionid
+
+def CHECK_AUTO_MANUAL(authToken,cookie,jsessionid):
+    print('DETECTING AUTO MANUAL')
+    
+    response = POST_REQ(authToken,cookie,jsessionid,"https://booking.bbdc.sg/bbdc-back-service/api/account/getUserProfile",{})
+    
+    data = response.json()
+    courseType = data['data']['enrolDetail']['courseType']
+    
+    print('courseType:',courseType)
+
+    return courseType
+
+    
 
 def POST_REQ(auth, cookie, jsessionid, url, data={}):
     headers = {
@@ -146,8 +163,9 @@ def POST_REQ(auth, cookie, jsessionid, url, data={}):
 
 def check(slots):
     print('executing check()')
-    month = 6
-    wanted_days = [22,23,24,25,26,27,28,30]
+    month = 7
+    #wanted_days = [22,23,24,25,26,27,28,30]
+    wanted_days=[28]
     try:
         slot_data = slots['data']['releasedSlotListGroupByDay']
         for key,value in slot_data.items():
@@ -160,7 +178,7 @@ def check(slots):
                 start_time = datetime.strptime(start_time, '%H:%M')
                 if date.month == month:
                     # filter only the wanted days
-                    if date.day in wanted_days and start_time.hour >= 12:
+                    if date.day in wanted_days and start_time.hour >=8 and start_time.hour <= 10:
                         print('found the slot')
                         return slot_row
     except Exception as e:
@@ -175,8 +193,8 @@ running3 = True
 while True:
     try:
         while running3:
-            username="105F26022004"
-            password="020975"
+            username="508G16112005"
+            password="875675"
             WebDriverWait(browser, wait_time).until(EC.presence_of_element_located((By.XPATH, "/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/form[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/input[1]")))
             login_user = browser.find_element(By.XPATH,'/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/form[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/input[1]')
             login_user.send_keys(username)
@@ -258,9 +276,16 @@ while True:
                     #except:
                     #    hehe = False
                     AUTH,COOKIE,JSESSIONID=AUTH_Decrypt()
+                    
+                    CourseType = CHECK_AUTO_MANUAL(AUTH,COOKIE,JSESSIONID)
 
                     print(AUTH + "\n" + COOKIE + "\n" + JSESSIONID)
+                    
 
+                    if CourseType == "3A":
+                        CourseType = "3A"
+                    else:
+                        CourseType = "3C"
 
                     refresh = True
                     count = 0
@@ -268,7 +293,7 @@ while True:
 
                         try:
                             slots= POST_REQ(AUTH,COOKIE,JSESSIONID,"https://booking.bbdc.sg/bbdc-back-service/api/booking/c3practical/listC3PracticalSlotReleased",{
-                            "courseType": "3C",
+                            "courseType": CourseType,
                             "insInstructorId": "",
                             "stageSubDesc": "Practical Lesson",
                             "subVehicleType": None,
@@ -308,7 +333,7 @@ while True:
                             print('captcha retrieved now booking call')
                             booking_call = POST_REQ(AUTH,COOKIE,JSESSIONID,"https://booking.bbdc.sg/bbdc-back-service/api/booking/c3practical/callBookC3PracticalSlot",
                                                 {
-                            "courseType": "3C",
+                            "courseType": CourseType,
                             "slotIdList": [
                             slotId
                             ],
@@ -340,7 +365,7 @@ while True:
 
                             if booking_call["data"]['bookedPracticalSlotList'][-1]['success'] == True:
                                 print('Booking Successful')
-                                SendNotification('Booking Successful')
+                                SendNotification('Booking Successful for Anya')
                                 SendNotification(str(booking_call))
                                 SendNotification(str(date))
                                 SendNotification(start_time)
@@ -355,7 +380,7 @@ while True:
                                 SendNotification(start_time)
                                 SendNotification(end_time)
                                 SendNotification(booking_call["data"]['bookedPracticalSlotList'][-1]['message'])
-                                time.sleep(5)
+                                time.sleep(20)
                         else:
                             # sleep for 100 seconds to allow the server to process the request
                             time.sleep(randint(20,30))

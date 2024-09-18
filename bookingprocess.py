@@ -1,6 +1,7 @@
 import json
 import threading
 import httpx
+import psutil
 from seleniumwire import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -23,8 +24,6 @@ from multiprocessing import Process, Event
 import argparse
 
 
-
-
 proxies = ["172.104.56.209:9050","188.166.239.48:3128","110.34.166.183:4153","167.71.220.29:7497","128.199.218.40:29492"]
 wait_time = 100
 random_platforms = [
@@ -35,7 +34,6 @@ random_platforms = [
     "Linux x86_64",
     "Linux i686"
 ]
-
 
 TOKEN = '7478425020:AAEHGNgDqa590x2xq6bHjMwgorv2F2Nc-D4'
 
@@ -87,12 +85,23 @@ def book_function(chatid,username,password,dates,stop_event):
             else:
                 pass
         return authToken,cookie,jsessionid
-    def POST_REQ(auth, cookie, jsessionid,random_platform, url, data={}):
+    
+    def CHECK_AUTO_MANUAL(authToken,cookie,jsessionid):
+        print('DETECTING AUTO MANUAL')
+
+        response = POST_REQ(authToken,cookie,jsessionid,"https://booking.bbdc.sg/bbdc-back-service/api/account/getUserProfile",{})
+
+        courseType = response['data']['enrolDetail']['courseType']
+
+        print('courseType:',courseType)
+
+        return courseType
+    
+    
+    def POST_REQ(auth, cookie, jsessionid, url, data={}):
         headers = {
             'Origin':'https://booking.bbdc.sg',
-            # 'User-Agent': 'PostmanRuntime/7.37.3',
-            'User-Agent': random_platform,
-            # 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
             'Authorization': auth,
             'Cookie': cookie,
             'Jsessionid': jsessionid
@@ -132,7 +141,7 @@ def book_function(chatid,username,password,dates,stop_event):
                     start_time = datetime.strptime(start_time, '%H:%M')
                     if date.month == month:
                         # filter only the wanted days
-                        if date.day in wanted_days and start_time.hour >= 8:
+                        if date.day in wanted_days:
                             print('found the slot')
                             return slot_row
                         
@@ -141,7 +150,17 @@ def book_function(chatid,username,password,dates,stop_event):
             print('error in check()')
             print(e)
         return None
-
+    
+    def refresh_users(Users):
+        with open('user_data.json', 'w') as f:
+            json.dump(Users, f, indent=4)
+            
+    def load_users():
+        try:
+            with open('user_data.json', 'r') as f:
+                return json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            return {}
 
     def SendNotification(text):
         
@@ -166,7 +185,8 @@ def book_function(chatid,username,password,dates,stop_event):
             current_index = end_index 
         
     chrome_options = Options()
-    chrome_options.add_argument("proxy-server="+proxies[randint(0,len(proxies)-1)])
+    proxy_string = proxies[randint(0,len(proxies)-1)]
+    chrome_options.add_argument("proxy-server="+proxy_string)
     browser = webdriver.Chrome(options=chrome_options)
     # Use Selenium-Stealth to make this browser instance stealthy
     random_platform = random_platforms[randint(0,len(random_platforms)-1)]
@@ -182,6 +202,7 @@ def book_function(chatid,username,password,dates,stop_event):
         fix_hairline= False         # Enable fixing a specific issue related to headless browsing
     )
     browser.get('https://booking.bbdc.sg/#/login?redirect=%2Fbooking')
+    SendNotification('Browser Opened')
     running3 = True
     while not stop_event.is_set():
         try:
@@ -195,6 +216,31 @@ def book_function(chatid,username,password,dates,stop_event):
                 login_pass.send_keys(password)
                 login_btn = browser.find_element(By.CLASS_NAME,'v-btn__content')
                 login_btn.click()
+                
+                # if error 
+                try:
+                    WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@class='v-snack__wrapper v-sheet theme--dark error']")))
+                    SendNotification('Temporary Error, Please Try Again Later')
+                    running3 = False
+                    running4 = False
+                    try:
+                        Users = load_users()
+                        subprocess_id = Users[chatid]['SUBPROCESS_ID']
+                        parent = psutil.Process(subprocess_id)
+                        children = parent.children(recursive=True)
+                        for child in children:
+                            child.kill()
+                        parent.kill()
+                        Users[chatid]['SUBPROCESS_ID'] = None
+                        refresh_users(Users)
+                    except psutil.NoSuchProcess:
+                        print(f"No process with PID {subprocess_id} was found.")
+                    except psutil.AccessDenied:
+                        print(f"Permission denied to kill process with PID {subprocess_id}.")
+                    break
+                except:
+                    pass
+                
                 captcha_code()
                 running4 = True
                 running3 = False
@@ -269,7 +315,15 @@ def book_function(chatid,username,password,dates,stop_event):
                         #except:
                         #    hehe = False
                         AUTH,COOKIE,JSESSIONID=AUTH_Decrypt(browser)
+                        CourseType = CHECK_AUTO_MANUAL(AUTH,COOKIE,JSESSIONID)
                         print(AUTH + "\n" + COOKIE + "\n" + JSESSIONID)
+                        
+                        
+                        
+                        if CourseType == "3A":
+                            CourseType = "3A"
+                        else:
+                            CourseType = "3C"
                         refresh = True
                         count = 0
                         # SendNotification(str(stop_event))
@@ -280,8 +334,8 @@ def book_function(chatid,username,password,dates,stop_event):
                                     browser.quit()
                                     break
                                 
-                                slots= POST_REQ(AUTH,COOKIE,JSESSIONID,random_platform,"https://booking.bbdc.sg/bbdc-back-service/api/booking/c3practical/listC3PracticalSlotReleased",{
-                                "courseType": "3C",
+                                slots= POST_REQ(AUTH,COOKIE,JSESSIONID,"https://booking.bbdc.sg/bbdc-back-service/api/booking/c3practical/listC3PracticalSlotReleased",{
+                                "courseType": CourseType,
                                 "insInstructorId": "",
                                 "stageSubDesc": "Practical Lesson",
                                 "subVehicleType": None,
@@ -314,7 +368,7 @@ def book_function(chatid,username,password,dates,stop_event):
                                 print('captcha retrieved now booking call')
                                 booking_call = POST_REQ(AUTH,COOKIE,JSESSIONID,"https://booking.bbdc.sg/bbdc-back-service/api/booking/c3practical/callBookC3PracticalSlot",
                                                     {
-                                "courseType": "3C",
+                                "courseType": CourseType,
                                 "slotIdList": [
                                 slotId
                                 ],
@@ -374,6 +428,8 @@ def book_function(chatid,username,password,dates,stop_event):
     if stop_event.is_set():
         browser.quit()
         return
+    
+    
 def SendNotification(text,chatid):
     people_msg = [
     f'https://api.telegram.org/bot{TOKEN}/sendMessage?chat_id={chatid}&text='
@@ -391,41 +447,8 @@ def SendNotification(text,chatid):
             url = i + current_chunk
             requests.post(url)
         # Move to the next chunk
-        current_index = end_index 
+        current_index = end_index
 
-def run_periodically(interval, func, chatid, username, password, dates):
-    while True:
-        stop_event = Event()
-        process = Process(target=func, args=(chatid, username, password, eval(dates), stop_event))
-        
-        SendNotification(f"Starting the process at {datetime.now()}", chatid)
-        process.start()
-        
-        # Allow the process to run for the specified interval
-        process.join(interval)
-        
-        # If the process is still running after the interval, terminate it
-        if process.is_alive():
-            SendNotification(f"Terminating the process at {datetime.now()}", chatid)
-            stop_event.set()  # Signal the process to stop
-            time.sleep(10)  # Wait for the process to terminate
-            process.terminate()
-            process.join()  # Ensure the process has finished
-        
-        # Restart the program
-        # restart_program(chatid)
-        run_periodically(interval, func, chatid, username, password, dates)
-
-def restart_program(chatid):
-    """Restarts the current program."""
-    SendNotification("Restarting the process...", chatid)
-    python = sys.executable
-    os.execl(python, python, *sys.argv)
-        
-
-
-
-    
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Send notifications to chatid")
     parser.add_argument('--chatid', type=str, required=True, help='Send to Specific ChatID')
@@ -433,30 +456,6 @@ if __name__ == "__main__":
     parser.add_argument('--password', type=str, required=True, help='Password for BBDC')
     parser.add_argument('--dates', type=str, required=True, help='Dates for BBDC')
     args = parser.parse_args()
-    interval = 3600
-    
-    run_periodically(interval, book_function, args.chatid, args.username, args.password, args.dates)
-    
-# flag to take in 
-# 1. username
-# 2. password
-# 3. dates
-# 4. SendMessage stuff
-# Setting up argument parser
-
-
-
-# Set the interval to 3600 seconds (1 hour)
-# interval = 3600
-
-# Create and start the thread
-# thread = threading.Thread(target=run_periodically, args=(interval, book_function,args.chatid,args.username,args.password,args.dates))
-# thread.daemon = True  # Daemonize thread
-# thread.start()
-
-# Keep the main program running
-# while True:
-#     time.sleep(1)
-    
-# python subbookingprocess.py --chatid 587628950 --username 105F26022004 --password 020975 --dates "[20,21,22,23,24,25,26,27,28,29,30,31]"
-    
+    dates = eval(args.dates)
+    SendNotification(f"Starting the subprocess at {datetime.now()}", args.chatid) 
+    book_function(args.chatid, args.username, args.password, dates)

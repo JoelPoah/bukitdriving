@@ -71,6 +71,17 @@ while True:
             login_pass.send_keys(password)
             login_btn = browser.find_element(By.CLASS_NAME,'v-btn__content')
             login_btn.click()
+            
+            try:
+                WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@class='v-snack__wrapper v-sheet theme--dark error']")))
+                #SendNotification('Temporary Error, Please Try Again Later')
+                #init_stop()
+                banned= "error banned"
+                requests.post(f"https://api.callmebot.com/text.php?user=@JoelPP&text={urllib.parse.quote_plus(str(banned))}")
+                browser.quit()
+                break
+            except:
+                pass
             captcha_code()
             running4 = True
             running3 = False
@@ -81,6 +92,7 @@ while True:
             browser.maximize_window()
             browser.minimize_window()
             browser.maximize_window()
+            # needs to maximized to click later hopefully rand sleeps help to bypass the bot detection
             if "/home/index" in browser.current_url:
                 try:
                     sidebar = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//div[@class='decrease']//button[@type='button']")))
@@ -108,6 +120,8 @@ while True:
                 running2 = False
             ## practical
             grey_screen = WebDriverWait(browser, wait_time).until(EC.invisibility_of_element_located((By.XPATH,"//div[@class='v-overlay__scrim']")))
+            Booking_Dropdown = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="app"]/div/div/nav/div[1]/div[3]/div[2]/div/div[1]')))
+            Booking_Dropdown.click()
             Practical = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//div[normalize-space()='Practical']")))
             grey_screen = WebDriverWait(browser, wait_time).until(EC.invisibility_of_element_located((By.XPATH,"//div[@class='v-overlay__scrim']")))
             Practical.click()
@@ -132,7 +146,7 @@ while True:
                         Booking_button = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//div[text()='Booking']")))
                         Booking_button.click()
                         hehe = False
-                    print("im here")
+                        print("im here")
                     Book_slots = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//body//div[@id='app']//div[@class='row']//div[@class='row']//div[1]//div[1]//button[1]//span[1]")))
                     Book_slots.click()
                     No_Fix_Instructor= WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//div[@role='radiogroup']//div[1]//div[1]//div[1]")))
@@ -180,7 +194,7 @@ while True:
                 grey_screen = WebDriverWait(browser, wait_time).until(EC.invisibility_of_element_located((By.XPATH,"//div[@class='v-overlay__scrim']")))
                 WebDriverWait(browser, wait_time).until(EC.presence_of_element_located((By.XPATH, "//div[@class='v-calendar-weekly__day v-present' or @class='v-calendar-weekly__day v-future']//*")))
                 dates = browser.find_elements(By.XPATH, "//div[@class='v-calendar-weekly__day v-present' or @class='v-calendar-weekly__day v-future']")
-                wanted_dates = [14,15,16,17]
+                wanted_dates = [23,24,25,26,28,29,30,31]
                 for each_date in dates:
                     if running:
                         if "/login" in browser.current_url:
@@ -217,7 +231,7 @@ while True:
                                     # Extract the number of hours from the difference
                                     hours_diff = int(time_diff.total_seconds() / 3600)
                                     print(hours_diff)
-                                    if hours_diff >= 1 and time_str != "07:30":
+                                    if hours_diff >= 1 and time_str != "07:00":
                                         each_slot.click()
                                 
                                 submit_button = WebDriverWait(browser, wait_time).until(EC.element_to_be_clickable((By.XPATH, "//div[@class='col-right col col-4']//button[@type='button']")))
@@ -250,8 +264,9 @@ while True:
                                 new_booking.click()
                                 running = False
                             else:
-                                nohave = "No slot available donkey"
-                                requests.post(f"https://api.callmebot.com/text.php?user=@JoelPP&text={nohave}")
+                                pass
+                                #nohave = "No slot available donkey"
+                                #requests.post(f"https://api.callmebot.com/text.php?user=@JoelPP&text={nohave}")
                         except Exception as e:
                             exc_type, exc_obj, exc_tb = sys.exc_info()
                             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]

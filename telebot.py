@@ -154,7 +154,7 @@ async def start_checking(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
         
         command = [
-            'python', 'subbookingprocess.py',
+            'python', 'interval_script.py',
             '--chatid', user_id,
             '--username', user_data['USERNAME'],
             '--password', user_data['PASSWORD'],
