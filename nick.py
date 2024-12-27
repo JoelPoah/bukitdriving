@@ -24,7 +24,7 @@ import sys
 import contextlib
 import logging
 
-log_file_path = 'joel.log'
+log_file_path = 'nick.log'
 
 # Configure logging to only write to the log file
 logging.basicConfig(
@@ -228,40 +228,14 @@ def POST_REQ(auth, cookie, jsessionid, url, data={}):
         print(f"An error occurred: {e}")
         return None
 
-def check_test(tests):
-    
-    month =[0]
-    weekends = [2,3,9,10,16,17,23,24,30]
-    try:
-        date_now = datetime.now()
-        slot_data = tests['data']['releasedSlotListGroupByDay']
-        
-        for key, value in slot_data.items():
-            for index, slot_row in enumerate(value):
-                date = slot_row['slotRefDate']
-                # Convert date to a proper date format
-                date = datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
-                start_time = slot_row['startTime']
-                end_time = slot_row['endTime']
-                
-
-                if date.month in month and date.day in weekends:
-                    SendNotification("test slot found in " + str(date) + " " + str(start_time) + " " + str(end_time))
-                
-    except Exception as e:
-        print('error in check()')
-        print(e)
-    
-    return None
-    return
-
 def check(slots):
     print('executing check()')
 
     # Define the desired days for each month
+    # 9:{"weekday":[2,3,4,5,6,9,10,11,12,13,16,17,18,19,20,23,24,25,26,27,30],"weekend":[1,7,8,14,15,21,22,28,29]},
+    
     wanted_days = {
-        11: [23,24],
-        12: [8,9]
+        11:{"weekday":[29],"weekend":[30]}
     }
 
     try:
@@ -273,36 +247,20 @@ def check(slots):
                 date = slot_row['slotRefDate']
                 # Convert date to a proper date format
                 date = datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
+                start_time = slot_row['startTime']
+                start_time = datetime.strptime(start_time, '%H:%M')
                 # Filter only the wanted days for the specified month
-                if date.month in wanted_days and date.day in wanted_days[date.month]:
-                    start_time = slot_row['startTime']
-                    start_time = datetime.strptime(start_time, '%H:%M')
-                    start_time_1_5_hours = start_time - timedelta(hours=1.5)
-                    date_now_str = date_now.strftime('%H:%M')
-                    
-                    # Debug prints to trace the computation values
-                    print(f"Current time: {date_now_str}")
-                    print(f"Slot time: {start_time.strftime('%H:%M')}")
-                    print(f"Slot time minus 1.5 hours: {start_time_1_5_hours.strftime('%H:%M')}")
-
-                    # Check the condition for time and day
-                    if date.date() == date_now.date() and 1==2:
-                        # Slot is today
-                        if start_time.hour >= 6 and date_now_str <= start_time_1_5_hours.strftime('%H:%M'):
-                            print('found the slot for today')
-                            SendNotification("Attempting to book slot for Joel")
-                            return slot_row
-                    else:
-                        # Slot is not today
-                        if start_time.hour >= 6:
-                            print('found the slot for another day')
-                            SendNotification("Attempting to book slot for Joel")
-                            return slot_row
+                if date.month in wanted_days and date.day in wanted_days[date.month]['weekday'] and start_time.hour >=6:
+                    return slot_row
+                elif date.month in wanted_days and date.day in wanted_days[date.month]['weekend'] and start_time.hour <=13:
+                    return slot_row
+          
     except Exception as e:
         print('error in check()')
         print(e)
     
     return None
+
 
 # Send keys with a delay between each character
 def send_keys_slowly(element, text, delay=0):
@@ -327,15 +285,15 @@ while True:
     try:
         while running3:
             time.sleep(randint(1,3))
-            username="105F02262004"
-            password="020975"
+            username="865I26112002"
+            password="250721"
             WebDriverWait(browser, wait_time).until(EC.presence_of_element_located((By.XPATH, "/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/form[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/input[1]")))
             login_user = browser.find_element(By.XPATH,'/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/form[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/input[1]')
-            #login_user.send_keys(username)
-            send_keys_slowly(login_user,username)
+            login_user.send_keys(username)
+            # send_keys_slowly(login_user,username)
             login_pass = browser.find_element(By.XPATH,'/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/form[1]/div[1]/div[3]/div[1]/div[1]/div[1]/div[1]/input[1]')
-            #login_pass.send_keys(password)
-            send_keys_slowly(login_pass,password)
+            login_pass.send_keys(password)
+            # send_keys_slowly(login_pass,password)
             login_btn = browser.find_element(By.CLASS_NAME,'v-btn__content')
             login_btn.click()
             
@@ -349,7 +307,7 @@ while True:
             
             while "/booking/index" not in browser.current_url:
                 captcha_code()
-                time.sleep(1)
+                time.sleep(5)
                 
             AUTH,COOKIE,JSESSIONID=AUTH_Decrypt()
             
@@ -365,17 +323,6 @@ while True:
             fail_counts = 0
             while refresh:
                 try:
-                    
-                    if count % 10 == 0:
-                        tests = POST_REQ(AUTH,COOKIE,JSESSIONID,"https://booking.bbdc.sg/bbdc-back-service/api/booking/test/listPracticalTestSlotReleased",{
-                            "courseType": "3C",
-                            "vehicleType": "Road",
-                            "viewOnly": True
-                        })
-
-                        check_test(tests)
-                    
-                    
                     slots= POST_REQ(AUTH,COOKIE,JSESSIONID,"https://booking.bbdc.sg/bbdc-back-service/api/booking/c3practical/listC3PracticalSlotReleased",{
                     "courseType": CourseType,
                     "insInstructorId": "",
@@ -388,7 +335,7 @@ while True:
                         print("this is fail count: ",fail_counts)
                         if fail_counts >=1:
                             init_stop()
-                            SendNotification(slots['message'])
+                            SendNotification(slots.message)
                     print('slots retrieved')
                     # print("before json loads ",type(slots))
  
@@ -438,7 +385,7 @@ while True:
                     # booking_call = booking_call.json()
                     if booking_call["data"]['bookedPracticalSlotList'][-1]['success'] == True:
                         print('Booking Successful')
-                        SendNotification('Booking Successful for joel.py')
+                        SendNotification('Booking Successful for Nick')
                         SendNotification(str(booking_call))
                         SendNotification(str(date))
                         SendNotification(start_time)
@@ -456,7 +403,7 @@ while True:
                         time.sleep(5)
                 else:
                     # sleep for 100 seconds to allow the server to process the request
-                    time.sleep(randint(30,40))
+                    time.sleep(randint(35,45))
 
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()

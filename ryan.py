@@ -58,7 +58,6 @@ with open(log_file_path, 'a') as log_file:
 
 people_msg = [
     "https://api.callmebot.com/text.php?user=@JoelPP&text=",
-    "https://api.callmebot.com/telegram/group.php?apikey=LTQ1MTc0NDQ4NDQ&text="
 ]
 
 
@@ -75,7 +74,6 @@ chrome_options.add_argument("--disable-dev-shm-usage")
 # Example User-Agents
 user_agents = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
 ]
 
@@ -228,6 +226,33 @@ def POST_REQ(auth, cookie, jsessionid, url, data={}):
     except httpx.RequestError as e:
         print(f"An error occurred: {e}")
         return None
+def check_test(slots):
+    
+    wanted_days = {
+        1:{"weekday":[11,12,18,19,25,26],"weekend":[0]},
+        2:{"weekday":[1,2,8,9,10,11,12,13,14,15,16,22,23],"weekend":[0]},
+    }
+    try:
+        date_now = datetime.now()
+        slot_data = slots['data']['releasedSlotListGroupByDay']
+        
+        for key, value in slot_data.items():
+            for index, slot_row in enumerate(value):
+                date = slot_row['slotRefDate']
+                # Convert date to a proper date format
+                date = datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
+                start_time = slot_row['startTime']
+                start_time = datetime.strptime(start_time, '%H:%M')
+                # Filter only the wanted days for the specified month
+                if date.month in wanted_days and date.day in wanted_days[date.month]['weekday'] and start_time.hour >=6:
+                    return slot_row
+                elif date.month in wanted_days and date.day in wanted_days[date.month]['weekend'] and start_time.hour >=6:
+                    return slot_row
+          
+    except Exception as e:
+        print('error in check_test()')
+        print(e)    
+    return None
 
 def check(slots):
     print('executing check()')
@@ -236,8 +261,9 @@ def check(slots):
     # 9:{"weekday":[2,3,4,5,6,9,10,11,12,13,16,17,18,19,20,23,24,25,26,27,30],"weekend":[1,7,8,14,15,21,22,28,29]},
     
     wanted_days = {
-        9:{"weekday":[21,22],"weekend":[0]},
-        10:{"weekday":[5,6,7,8,12,13,14,15,19,20,21,22,26,27,28,29],"weekend":[3,4,10,11,17,18,24,25,31]}
+        11:{"weekday":[0],"weekend":[0]},
+        12:{"weekday":[0],"weekend":[]},
+        1:{"weekday":[4,5,11,12,18,19,25,26],"weekend":[0]}
     }
 
     try:
@@ -254,7 +280,7 @@ def check(slots):
                 # Filter only the wanted days for the specified month
                 if date.month in wanted_days and date.day in wanted_days[date.month]['weekday'] and start_time.hour >=6:
                     return slot_row
-                elif date.month in wanted_days and date.day in wanted_days[date.month]['weekend'] and start_time.hour <=13:
+                elif date.month in wanted_days and date.day in wanted_days[date.month]['weekend'] and start_time.hour >=6:
                     return slot_row
           
     except Exception as e:
@@ -287,8 +313,8 @@ while True:
     try:
         while running3:
             time.sleep(randint(1,3))
-            username="738c02122004"
-            password="844425"
+            username="105F26022004"
+            password="020975"
             WebDriverWait(browser, wait_time).until(EC.presence_of_element_located((By.XPATH, "/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/form[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/input[1]")))
             login_user = browser.find_element(By.XPATH,'/html[1]/body[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/form[1]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/input[1]')
             login_user.send_keys(username)
@@ -300,7 +326,7 @@ while True:
             login_btn.click()
             
             try:
-                WebDriverWait(browser, 10).until(EC.presence_of_element_located((By.XPATH, "//div[@class='v-snack__wrapper v-sheet theme--dark error']")))
+                WebDriverWait(browser, 5).until(EC.presence_of_element_located((By.XPATH, "//div[@class='v-snack__wrapper v-sheet theme--dark error']")))
                 SendNotification('Temporary Error, Please Try Again Later')
                 init_stop()
                 break
@@ -325,6 +351,21 @@ while True:
             fail_counts = 0
             while refresh:
                 try:
+                    
+                    test_slots = POST_REQ(AUTH,COOKIE,JSESSIONID,"https://booking.bbdc.sg/bbdc-back-service/api/booking/test/listPracticalTestSlotReleased",{
+                    "courseType": CourseType,
+                    "vehicleType": "Road",
+                    "viewonly":True
+                    })
+                    
+                    testslot = check_test(test_slots)
+                    if testslot:
+                        print('test slot found')
+                        print(testslot)
+                        SendNotification('Test Slot Found')
+                        SendNotification(str(testslot))
+                        break
+                    
                     slots= POST_REQ(AUTH,COOKIE,JSESSIONID,"https://booking.bbdc.sg/bbdc-back-service/api/booking/c3practical/listC3PracticalSlotReleased",{
                     "courseType": CourseType,
                     "insInstructorId": "",
@@ -339,10 +380,11 @@ while True:
                             init_stop()
                             SendNotification(slots.message)
                     print('slots retrieved')
-                    # print("before json loads ",type(slots))
  
                     print("after json loads ",type(slots))
                     single_wanted_booking = check(slots)
+                    
+                    
                 except Exception as e:
                     print('error in slots retrieval')
                     print(e)

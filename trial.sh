@@ -2,17 +2,17 @@
 
 run_window_main() {
     if [ -z "$JOEL_PID" ] || ! kill -0 $JOEL_PID 2>/dev/null; then
-        echo "Starting joel.py..."
-        python joel.py &
+        echo "Starting ryan.py..."
+        python print.py &
         JOEL_PID=$!
     else
-        echo "joel.py is already running with PID $JOEL_PID."
+        echo "ryan.py is already running with PID $JOEL_PID."
     fi
 }
 
 terminate_process() {
     if [ -n "$JOEL_PID" ] && kill -0 $JOEL_PID 2>/dev/null; then
-        echo "Terminating joel.py with PID $JOEL_PID..."
+        echo "Terminating ryan.py with PID $JOEL_PID..."
         kill -TERM $JOEL_PID
         wait $JOEL_PID
         JOEL_PID=""  # Clear the PID
