@@ -71,6 +71,10 @@ chrome_options.add_argument("--disable-blink-features=AutomationControlled")
 chrome_options.add_argument("--no-sandbox")
 chrome_options.add_argument("--disable-dev-shm-usage")
 
+proxies = ["172.104.56.209:9050","188.166.239.48:3128","110.34.166.183:4153","167.71.220.29:7497","128.199.218.40:29492"]
+proxy_string = proxies[randint(0,len(proxies)-1)]
+chrome_options.add_argument("proxy-server="+proxy_string)
+
 # Example User-Agents
 user_agents = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
