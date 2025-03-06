@@ -1,0 +1,15 @@
+{
+
+    "@JoelPP": {
+        "USERNAME": "738c02122004",
+        "PASSWORD": "844424",
+        "DATES": {
+          "3": {
+            "weekday": [10, 11, 12, 13, 14, 17, 18, 19, 20, 21],
+            "weekend": [15, 16]
+          }
+        },
+        "SUBPROCESS_ID": null,
+        "CREDITS": 3
+      }
+}
