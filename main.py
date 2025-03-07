@@ -472,5 +472,11 @@ def SendNotification(text,chatid):
         # Move to the next chunk
         current_index = end_index
     
-    
+booker = Booker("108H05082004","252612","@SlotFinder",{
+      "3": {
+        "weekday": [10, 11, 12, 13, 14, 17, 18, 19, 20, 21],
+        "weekend": [15, 16]
+      }
+    })
+
 
