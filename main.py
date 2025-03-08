@@ -19,6 +19,8 @@ import jwt
 import sys ,os
 
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 
 
 import sys
@@ -42,13 +44,14 @@ class Booker:
         chrome_options.add_argument("--disable-blink-features=AutomationControlled")
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
+        chrome_options.add_argument("--remote-debugging-port=9222")  # Enable remote debugging
 
         user_agents = [
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
             "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
         ]
         chrome_options.add_argument(f"user-agent={choice(user_agents)}")
-        self.browser = webdriver.Chrome(options=chrome_options)
+        self.browser = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
         # Use Selenium-Stealth to make this self.browser instance stealthy
         # Updated list of random platforms
         random_platforms = [
@@ -472,11 +475,4 @@ def SendNotification(text,chatid):
         # Move to the next chunk
         current_index = end_index
     
-booker = Booker("108H05082004","252612","@SlotFinder",{
-      "3": {
-        "weekday": [10, 11, 12, 13, 14, 17, 18, 19, 20, 21],
-        "weekend": [15, 16]
-      }
-    })
-
 

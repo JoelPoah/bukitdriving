@@ -7,7 +7,7 @@ set -o pipefail  # Fail on errors in pipelines
 SEARCH_PID_FILE="search_users.pid"
 STOP_SIGNAL_FILE="stop_signal.txt"
 RESTRICTED_TIMES=(
-    $((23 * 60 + 30)) $((24 * 60))  # 23:30 - 00:00
+    $((23 * 60 + 59 )) $((24 * 60))  # 23:59 - 00:00
     $((0 * 60)) $((13 * 60 + 30))   # 00:00 - 13:30
     $((16 * 60 + 30)) $((17 * 60 + 30))  # 16:30 - 17:30
     $((18 * 60 + 30)) $((19 * 60 + 30))  # 18:30 - 19:30
