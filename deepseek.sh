@@ -12,9 +12,8 @@ RESTRICTED_TIMES=(
     $((16 * 60 + 30)) $((17 * 60 + 30))  # 16:30 - 17:30
     $((18 * 60 + 30)) $((19 * 60 + 30))  # 18:30 - 19:30
 )
-RESTART_INTERVAL=600  # Restart interval in seconds (600s = 10 minutes)
+RESTART_INTERVAL=1300  # Restart interval in seconds (1300s = ~21.67 minutes)
 SLEEP_INTERVAL=30  # Sleep interval in seconds
-MEMORY_LOG_INTERVAL=300  # Log memory usage every 5 minutes
 
 # Logging function
 log() {
@@ -70,11 +69,6 @@ terminate_process() {
     log "Killing all Chrome and ChromeDriver processes..."
     pkill -f "chrome" || true
     pkill -f "chromedriver" || true
-
-    # Clean up temporary files
-    log "Cleaning up temporary files..."
-    rm -rf /tmp/.com.google.Chrome.* || true
-    rm -rf /tmp/.org.chromium.Chromium.* || true
 }
 
 # Function to check if the current time is within restricted times
@@ -93,23 +87,10 @@ is_restricted_time() {
     return 1  # Not restricted time
 }
 
-# Function to log memory usage
-log_memory_usage() {
-    local memory_usage=$(free -m | awk '/Mem:/ {print $3}')
-    log "Current memory usage: ${memory_usage}MB"
-}
-
-# Function to clean up zombie processes
-cleanup_zombies() {
-    log "Cleaning up zombie processes..."
-    ps aux | awk '/[Zz]/{print $2}' | xargs -r kill -9
-}
-
 # Main loop
 main() {
     local run=true
     local last_restart_time=$(date +%s)
-    local last_memory_log_time=$(date +%s)
 
     while $run; do
         if is_restricted_time; then
@@ -120,40 +101,30 @@ main() {
             local current_time_secs=$(date +%s)
             local elapsed_time=$((current_time_secs - last_restart_time))
 
-            # Log memory usage periodically
-            if (( current_time_secs - last_memory_log_time >= MEMORY_LOG_INTERVAL )); then
-                log_memory_usage
-                last_memory_log_time=$(date +%s)
-            fi
-
-            # Restart process if interval is reached
             if (( elapsed_time >= RESTART_INTERVAL )); then
                 log "Restart interval reached. Restarting search_users.py..."
                 terminate_process
                 sleep 5  # Wait for resources to be released
                 activate_venv
                 start_search_process
-                last_restart_time=$(date +%s)
+                last_restart_time=$(date +%s)  # Update restart time
             else
                 if [ ! -f "$SEARCH_PID_FILE" ] || ! kill -0 $(cat "$SEARCH_PID_FILE") 2>/dev/null; then
                     log "Process not running. Starting search_users.py..."
                     activate_venv
                     start_search_process
+                    last_restart_time=$(date +%s)  # Update restart time
                 fi
             fi
             sleep $SLEEP_INTERVAL
         fi
 
-        # Check for stop signal
         if [ -f "$STOP_SIGNAL_FILE" ]; then
             log "Stop signal received. Terminating..."
             terminate_process
             rm -f "$STOP_SIGNAL_FILE"
             run=false
         fi
-
-        # Clean up zombie processes
-        cleanup_zombies
     done
 }
 
