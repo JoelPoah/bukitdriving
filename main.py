@@ -127,7 +127,7 @@ class Booker:
         
 
 
-    def init_stop():
+    def init_stop(self):
         with open('./stop_signal.txt','w') as f:
             f.write('stop')
     
