@@ -291,7 +291,7 @@ class Booker:
                     # Filter only the wanted days for the specified month
                     if date.month in int(wanted_days) and date.day in wanted_days[date.month]['weekday'] and start_time.hour >=6:
                         return slot_row
-                    elif date.month in int(wanted_days) and date.day in wanted_days[date.month]['weekend'] and start_time.hour >=12:
+                    elif date.month in int(wanted_days) and date.day in wanted_days[date.month]['weekend'] and start_time.hour >=6:
                         return slot_row
               
         except Exception as e:
