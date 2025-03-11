@@ -274,7 +274,6 @@ class Booker:
         try:
             date_now = datetime.now()
             slot_data = slots['data']['releasedSlotListGroupByDay']
-            date = slot_row['slotRefDate']
             # Convert date to a proper date format
             date = datetime.strptime(date, '%Y-%m-%d %H:%M:%S')
             if date.month == date_now.month:
@@ -285,7 +284,7 @@ class Booker:
             
             for key, value in slot_data.items():
                 for index, slot_row in enumerate(value):
-
+                    date = slot_row['slotRefDate']
                     start_time = slot_row['startTime']
                     start_time = datetime.strptime(start_time, '%H:%M')
                     # Filter only the wanted days for the specified month
