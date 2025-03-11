@@ -378,7 +378,8 @@ class Booker:
                                 print("this is fail count: ",fail_counts)
                                 if fail_counts >=1:
                                     self.init_stop()
-                                    self.SendNotification(slots.message)
+                                    self.SendNotification(slots['message'])
+                                    self.SendNotification('Stopping the program')
                             print('slots retrieved')
                             print("after json loads ",type(slots))
                             single_wanted_booking = self.check(slots)
